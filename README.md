@@ -51,6 +51,15 @@ VITE_SERVER_URL=http://meu-servidor:3210
 Para jogar em rede local, os outros jogadores acessam o Vite pelo IP da sua
 máquina (`npm run dev -- --host`) e o cliente achará o servidor no mesmo IP.
 
+### Hospedagem
+
+- **Cliente:** GitHub Pages, com deploy automático a cada push na `main`
+  (`.github/workflows/deploy.yml`). O build lê a variável de repositório
+  `VITE_SERVER_URL` para apontar ao servidor multiplayer publicado.
+- **Servidor multiplayer:** Render (`render.yaml`, plano gratuito). Atenção:
+  no plano gratuito o serviço hiberna após ~15 min sem uso e a primeira
+  conexão pode levar até 1 minuto para acordá-lo.
+
 ### Testes
 
 ```bash

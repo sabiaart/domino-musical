@@ -1,0 +1,11 @@
+# Blueprint do Render: servidor multiplayer (Socket.io).
+# O Render define a variável PORT automaticamente; server/index.js já a lê.
+services:
+  - type: web
+    name: domino-musical-server
+    runtime: node
+    plan: free
+    region: ohio # mais próximo do Brasil entre as regiões do Render
+    buildCommand: npm ci
+    startCommand: node server/index.js
+    healthCheckPath: /
