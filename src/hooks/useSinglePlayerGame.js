@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createMatch, reduce, PHASES } from '../game/engine.js';
 import { getEnds } from '../game/board.js';
 import { getPlayableTiles, mustDraw, mustPass } from '../game/rules.js';
 import { chooseAiAction } from '../game/ai.js';
 
 const AI_INDEX = 1;
-const AI_DELAY_MS = 900;
+// Antes de jogar, o computador espera as notas da peça anterior terminarem,
+// para elas não se atropelarem. Comprar e passar não soam nada — nesses casos
+// a espera é só de ritmo, e uma sequência de compras não fica arrastada.
+const AI_PLAY_DELAY_MS = 4000;
+const AI_QUIET_DELAY_MS = 900;
 
 export function useSinglePlayerGame(playerName, difficulty) {
   const [state, setState] = useState(() =>
@@ -24,20 +28,26 @@ export function useSinglePlayerGame(playerName, difficulty) {
 
   // Vez do computador: uma ação por mudança de estado, com atraso natural.
   // Compras encadeiam sozinhas (a vez continua com ele após comprar).
-  const timerRef = useRef(null);
   useEffect(() => {
     if (state.phase !== PHASES.PLAYING || state.currentPlayer !== AI_INDEX) return;
-    timerRef.current = setTimeout(() => {
+    let action;
+    try {
+      action = chooseAiAction(state, AI_INDEX, difficulty);
+    } catch {
+      return;
+    }
+    const delay = action.type === 'PLAY_TILE' ? AI_PLAY_DELAY_MS : AI_QUIET_DELAY_MS;
+    const timer = setTimeout(() => {
       setState((prev) => {
-        if (prev.phase !== PHASES.PLAYING || prev.currentPlayer !== AI_INDEX) return prev;
+        if (prev !== state) return prev; // estado mudou: a ação escolhida não vale mais
         try {
-          return reduce(prev, chooseAiAction(prev, AI_INDEX, difficulty));
+          return reduce(prev, action);
         } catch {
           return prev;
         }
       });
-    }, AI_DELAY_MS);
-    return () => clearTimeout(timerRef.current);
+    }, delay);
+    return () => clearTimeout(timer);
   }, [state, difficulty]);
 
   const view = useMemo(() => {
