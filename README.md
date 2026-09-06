@@ -4,10 +4,11 @@ Dominó clássico ("Draw" / com compra) em versão musical: no lugar dos número
 as peças usam as **7 notas** — Dó, Ré, Mi, Fá, Sol, Lá, Si — cada uma com sua
 cor, e nota encaixa com nota igual.
 
-O tabuleiro soa: ao entrar na mesa, a peça **toca as suas notas** (uma por
-segundo; carroça toca uma vez só), e **passar o mouse** sobre metade de uma
-peça toca aquela nota — dá para "tocar" a cadeia correndo o mouse por ela.
-O botão 🔊 silencia tudo.
+O tabuleiro soa: ao entrar na mesa, a peça **toca as suas notas** — primeiro a
+que encaixou na ponta, depois a que ficou de fora como nova ponta, com um
+segundo entre elas (carroça toca uma vez só). **Passar o mouse** sobre metade
+de uma peça toca aquela nota, então dá para "tocar" a cadeia correndo o mouse
+por ela. O botão 🔊 silencia tudo.
 
 Modos de jogo:
 

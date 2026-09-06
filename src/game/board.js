@@ -51,3 +51,15 @@ export function placeTile(board, tile, side) {
 export function boardHasDoubleAt(placed) {
   return isDouble(placed.tile);
 }
+
+// Ordem em que as notas de uma peça recém-colocada devem soar: primeiro a que
+// encostou na mesa, depois a que ficou de fora como nova ponta.
+// A cadeia vai da ponta esquerda à direita, então uma peça nova no índice 0
+// entrou pela esquerda — e nesse caso é o lado `right` dela que fez o encaixe.
+export function placedNoteOrder(board, index) {
+  const placed = board[index];
+  const entrouPelaEsquerda = index === 0 && board.length > 1;
+  return entrouPelaEsquerda
+    ? [placed.right, placed.left]
+    : [placed.left, placed.right];
+}

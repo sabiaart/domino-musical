@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Tile from './Tile.jsx';
+import { placedNoteOrder } from '../game/board.js';
 import { layoutChain } from '../ui/layoutChain.js';
 import { playTileNotes } from '../ui/sound.js';
 
@@ -60,12 +61,13 @@ export default function Board({ board, dropSides = null, hoveredSide = null }) {
 
     // Início de rodada: a mesa recomeça com a peça inicial, que também soa.
     if (board.length === 1 && (prev === null || prev.size !== 1)) {
-      playTileNotes(board[0].tile);
+      playTileNotes(board[0].left, board[0].right);
       return;
     }
     if (prev === null) return; // entrou numa partida já em andamento
-    const added = board.filter((p) => !prev.has(p.tile.id));
-    if (added.length === 1) playTileNotes(added[0].tile);
+    const novas = board.map((p, i) => (prev.has(p.tile.id) ? -1 : i)).filter((i) => i >= 0);
+    if (novas.length !== 1) return;
+    playTileNotes(...placedNoteOrder(board, novas[0]));
   }, [board]);
 
   const unit = width > 0 && width < 520 ? 24 : 32;

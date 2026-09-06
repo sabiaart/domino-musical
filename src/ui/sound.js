@@ -71,9 +71,10 @@ export function playNotes(
   });
 }
 
-// Notas de uma peça: carroça toca uma vez só (as duas metades são a mesma nota).
-export function playTileNotes(tile) {
-  playNotes(tile.a === tile.b ? [tile.a] : [tile.a, tile.b]);
+// Notas de uma peça na ordem em que devem soar; carroça toca uma vez só
+// (as duas metades são a mesma nota).
+export function playTileNotes(primeira, segunda) {
+  playNotes(primeira === segunda ? [primeira] : [primeira, segunda]);
 }
 
 // --- Prévia no hover -------------------------------------------------------
