@@ -107,7 +107,8 @@ npm test
 
 ```
 src/game/       lógica pura e testável (peças, mesa, regras, pontuação, motor, IA)
-src/components/ interface React (mesa em serpentina, mão, placar, lobby…)
+src/components/ interface React (mesa, mão, placar, lobby…)
+src/ui/         layout da cadeia na mesa e som das notas
 src/hooks/      integração UI ↔ motor (single-player) e UI ↔ socket (multiplayer)
 server/         servidor Socket.io autoritativo com salas em memória
 ```
