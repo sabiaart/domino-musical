@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { layoutChain, centralizar, zoneRect, oposta, unidadeParaLargura } from '../layoutChain.js';
+import {
+  layoutChain,
+  centralizar,
+  zoneRect,
+  oposta,
+  unidadeParaLargura,
+  colocar,
+} from '../layoutChain.js';
 import { placeTile, getEnds, canPlay, playableSides } from '../../game/board.js';
 import { createAllTiles, shuffle, makeTile } from '../../game/tiles.js';
 import { seededRng } from '../../game/__tests__/helpers.js';
@@ -44,6 +51,21 @@ function temSobreposicao(cells, u = UNIT) {
   return null;
 }
 
+
+// Comprimento do encosto entre duas peças vizinhas, e por qual eixo.
+// No dominó a ligação é sempre pela ponta: o contato mede exatamente uma
+// unidade (a largura da face da peça). Lado longo com lado longo daria duas.
+function encosto(a, b, gap) {
+  const perto = (p, q) => Math.abs(p - q) <= gap + 0.6;
+  if (perto(a.x + a.w, b.x) || perto(b.x + b.w, a.x)) {
+    return { eixo: 'x', contato: Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) };
+  }
+  if (perto(a.y + a.h, b.y) || perto(b.y + b.h, a.y)) {
+    return { eixo: 'y', contato: Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) };
+  }
+  return null; // não se encostam (quebra de linha de emergência)
+}
+
 describe('layoutChain', () => {
   it('posiciona todas as peças da mesa', () => {
     for (const n of [1, 2, 5, 14, 28]) {
@@ -76,7 +98,8 @@ describe('layoutChain', () => {
   });
 
   it('a unidade acompanha a largura da tela', () => {
-    expect(unidadeParaLargura(380)).toBe(24);
+    expect(unidadeParaLargura(380)).toBe(20); // celular: peça menor cabe melhor
+    expect(unidadeParaLargura(460)).toBe(24);
     expect(unidadeParaLargura(900)).toBe(32);
   });
 
@@ -126,10 +149,16 @@ describe('layoutChain', () => {
     expect(carroca.vertical).toBe(!comum.vertical);
   });
 
-  it('quase nunca precisa quebrar a linha de emergência', () => {
-    // A quebra é o último recurso quando a cadeia se fecha num beco. Ela é
-    // segura (não sobrepõe), mas parte o desenho — tem que ser rara.
-    for (const [largura, alturaVisivel] of [[380, 260], [420, 300], [700, 360], [1100, 420]]) {
+  it('a quebra de linha de emergência é rara, e some quando há espaço', () => {
+    // A quebra é o último recurso quando a mesa cheia não cabe de outro jeito.
+    // Ela é segura (não sobrepõe nem perde peça), mas separa o desenho, então
+    // precisa ser incomum — e praticamente inexistente numa tela larga.
+    const limites = [
+      [380, 260, 0.3],
+      [700, 360, 0.2],
+      [1100, 420, 0.05],
+    ];
+    for (const [largura, alturaVisivel, maximo] of limites) {
       let comQuebra = 0;
       const total = 120;
       const u = unidadeParaLargura(largura); // a mesma regra que a mesa usa
@@ -137,18 +166,66 @@ describe('layoutChain', () => {
         const l = layoutChain(cadeia(28, s), largura, u, s, alturaVisivel);
         if (l.quebras > 0) comQuebra++;
       }
-      expect(comQuebra / total).toBeLessThan(0.15);
+      expect(comQuebra / total, `largura ${largura}`).toBeLessThan(maximo);
     }
   });
 
-  it('procura caber na altura visível', () => {
-    let couberam = 0;
-    const total = 60;
-    for (let s = 1; s <= total; s++) {
-      const l = layoutChain(cadeia(28, s), 700, UNIT, s, 360);
-      if (l.alturaCadeia <= 360) couberam++;
+  it('a altura fica na mesma ordem de grandeza da área visível', () => {
+    // Numa mesa cheia a cadeia pode passar da área e a mesa rola — o que não
+    // pode é disparar, obrigando a rolar sem fim.
+    for (let s = 1; s <= 80; s++) {
+      const l = layoutChain(cadeia(28, s), 1100, UNIT, s, 420);
+      expect(l.alturaCadeia).toBeLessThan(420 * 2.5);
     }
-    expect(couberam / total).toBeGreaterThan(0.8);
+  });
+
+
+  it('toda ligação é pela ponta, como manda o dominó', () => {
+    // Regressão: a cadeia já encostou peça com peça pelo lado LONGO ao virar,
+    // que é um encaixe inválido. O contato tem de medir uma unidade.
+    for (const [largura, alturaVisivel] of [[380, 260], [700, 360], [1100, 420]]) {
+      const u = unidadeParaLargura(largura);
+      for (let s = 1; s <= 25; s++) {
+        const l = layoutChain(cadeia(28, s), largura, u, s, alturaVisivel);
+        const rs = l.cells.map((c) => rect(c, u));
+        let semEncosto = 0;
+        for (let i = 1; i < rs.length; i++) {
+          const e = encosto(rs[i - 1], rs[i], l.gap);
+          if (e === null) {
+            semEncosto++;
+            continue;
+          }
+          expect(
+            Math.abs(e.contato - u),
+            `semente ${s}: ${l.cells[i - 1].id} com ${l.cells[i].id} encosta ${e.contato}px (esperado ${u})`
+          ).toBeLessThan(0.6);
+        }
+        // Só a quebra de emergência pode deixar peças sem encosto.
+        expect(semEncosto).toBe(l.quebras);
+      }
+    }
+  });
+
+  it('peça comum que vira fica em pé, encostando pela metade que conecta', () => {
+    const m = { unit: 32, long: 64, gap: 3, larguraMax: 9999, alturaMax: 9999 };
+    // Cadeia vindo da direita, saindo pela ponta (100, 50); vira para baixo.
+    const { rect: r, novaSaida } = colocar({ x: 100, y: 50 }, 'right', 'down', false, m);
+    expect(r.w).toBe(32); // em pé
+    expect(r.h).toBe(64);
+    expect(r.x).toBe(103); // encostada à frente, com o vão
+    // A METADE de cima (a que conecta) fica centrada na linha da cadeia.
+    expect(r.y + 16).toBe(50);
+    // E a cadeia segue pela face de baixo.
+    expect(novaSaida).toEqual({ x: 103 + 16, y: r.y + 64 });
+  });
+
+  it('carroça entra atravessada e a cadeia passa pelo meio dela', () => {
+    const m = { unit: 32, long: 64, gap: 3, larguraMax: 9999, alturaMax: 9999 };
+    const { rect: r, novaSaida } = colocar({ x: 100, y: 50 }, 'right', 'right', true, m);
+    expect(r.w).toBe(32); // atravessada
+    expect(r.h).toBe(64);
+    expect(r.y + 32).toBe(50); // centrada na linha da cadeia
+    expect(novaSaida).toEqual({ x: r.x + 32, y: 50 }); // sai pelo meio
   });
 
   it('mesa vazia não quebra', () => {

@@ -5,9 +5,10 @@ as peças usam as **7 notas** — Dó, Ré, Mi, Fá, Sol, Lá, Si — cada uma c
 cor, e nota encaixa com nota igual.
 
 A cadeia anda pela mesa em quatro direções: segue reto ou **vira para cima ou
-para baixo por sorteio**, como numa mesa de verdade, e fica sempre centralizada
-na área de jogo. O sorteio é fixo por rodada — a mesma mesa desenha sempre
-igual, então as peças não pulam de lugar.
+para baixo**, e fica sempre centralizada na área de jogo. As ligações seguem a
+regra do dominó — sempre pela ponta: a carroça entra atravessada e a peça que
+vira fica em pé, encostando pela metade que conecta. O sorteio é fixo por
+rodada, então a mesma mesa desenha sempre igual e as peças não pulam de lugar.
 
 O tabuleiro soa: ao entrar na mesa, a peça **toca as suas notas** — primeiro a
 que encaixou na ponta, depois a que ficou de fora como nova ponta, com um
