@@ -15,7 +15,15 @@ const HOVER_DURATION_S = 0.35;
 const HOVER_VOLUME = 0.12;
 const HOVER_REPEAT_MS = 140; // evita retrigger na mesma nota em varreduras rápidas
 
+// A placa de som leva alguns milissegundos para começar a produzir áudio depois
+// que o contexto nasce. Agendar a primeira nota rente a esse instante faz ela
+// sair cortada (ou nem sair) — daí a folga extra logo após a criação.
+const WARMUP_LEAD_S = 0.15;
+const WARMUP_WINDOW_MS = 600;
+const NORMAL_LEAD_S = 0.02;
+
 let ctx = null;
+let ctxCreatedAt = 0;
 
 export function isMuted() {
   return localStorage.getItem(MUTE_KEY) === '1';
@@ -30,6 +38,7 @@ function getContext() {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return null;
     ctx = new AudioCtx();
+    ctxCreatedAt = performance.now();
   }
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
@@ -43,7 +52,8 @@ export function playNotes(
   if (isMuted() || values.length === 0) return;
   const audio = getContext();
   if (!audio) return;
-  const start = audio.currentTime + 0.02;
+  const recemCriado = performance.now() - ctxCreatedAt < WARMUP_WINDOW_MS;
+  const start = audio.currentTime + (recemCriado ? WARMUP_LEAD_S : NORMAL_LEAD_S);
   values.forEach((value, i) => {
     const freq = NOTE_FREQS[value];
     if (!freq) return;
