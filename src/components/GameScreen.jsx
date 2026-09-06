@@ -151,7 +151,7 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNextRound, 
             transform: `translate(${drag.x}px, ${drag.y}px)`,
           }}
         >
-          <Tile a={drag.tile.a} b={drag.tile.b} unit={drag.w / 2} highlight />
+          <Tile a={drag.tile.a} b={drag.tile.b} unit={drag.w / 2} highlight hoverSound={false} />
         </div>
       )}
     </div>

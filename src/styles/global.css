@@ -65,10 +65,6 @@ button {
   height: calc(var(--unit) * 2);
 }
 
-.tile:disabled {
-  opacity: 1; /* peças não clicáveis continuam nítidas */
-}
-
 .tile.dimmed {
   filter: grayscale(0.35) brightness(0.75);
 }
@@ -122,6 +118,17 @@ button {
     var(--note-color, #888);
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35);
   overflow: hidden;
+  transition: filter 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* Metade sob o mouse: acende junto com a nota que toca. */
+@media (hover: hover) {
+  .tile.audible .tile-half:hover {
+    filter: brightness(1.22);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.35),
+      inset 0 0 0 2px rgba(255, 255, 255, 0.7);
+  }
 }
 
 .note-name {

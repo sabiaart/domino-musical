@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { setHoverSoundsEnabled } from '../ui/sound.js';
 
 // Arrastar peça da mão até uma ponta da mesa (Pointer Events: mouse e toque).
 // O arrasto só ativa após ~8px de movimento, para não engolir o duplo clique.
@@ -40,6 +41,8 @@ export function useTileDrag(onPlay) {
             return;
           }
           info.active = true;
+          // O ponteiro vai varrer a mesa: sem prévias de nota até soltar.
+          setHoverSoundsEnabled(false);
           setDrag({
             tile: info.tile,
             sides: info.sides,
@@ -69,6 +72,7 @@ export function useTileDrag(onPlay) {
         window.removeEventListener('pointerup', up);
         window.removeEventListener('pointercancel', cancel);
         infoRef.current = null;
+        setHoverSoundsEnabled(true);
         setDrag(null);
         setHoveredSide(null);
         if (drop && info?.active && info.hovered) {

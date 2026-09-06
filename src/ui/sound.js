@@ -1,9 +1,20 @@
-// Sons das notas via WebAudio: arpejo curto ao colocar uma peça na mesa.
+// Sons das notas via WebAudio.
 // O AudioContext é criado sob demanda (após o primeiro gesto do usuário).
 
 import { NOTE_FREQS } from '../game/notes.js';
 
 const MUTE_KEY = 'domino.muted';
+
+// Peça colocada na mesa: uma nota por vez, com 1s entre elas.
+const PLAY_GAP_S = 1.0;
+const PLAY_DURATION_S = 0.5;
+const PLAY_VOLUME = 0.22;
+
+// Prévia ao passar o mouse: mais curta e mais baixa que a jogada.
+const HOVER_DURATION_S = 0.35;
+const HOVER_VOLUME = 0.12;
+const HOVER_REPEAT_MS = 140; // evita retrigger na mesma nota em varreduras rápidas
+
 let ctx = null;
 
 export function isMuted() {
@@ -24,8 +35,11 @@ function getContext() {
   return ctx;
 }
 
-// Toca as notas em sequência (arpejo). `values` são índices 0–6.
-export function playNotes(values, { gap = 0.16, duration = 0.32 } = {}) {
+// Toca as notas em sequência. `values` são índices 0–6.
+export function playNotes(
+  values,
+  { gap = PLAY_GAP_S, duration = PLAY_DURATION_S, volume = PLAY_VOLUME } = {}
+) {
   if (isMuted() || values.length === 0) return;
   const audio = getContext();
   if (!audio) return;
@@ -39,10 +53,37 @@ export function playNotes(values, { gap = 0.16, duration = 0.32 } = {}) {
     osc.frequency.value = freq;
     const t = start + i * gap;
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.22, t + 0.02);
+    gain.gain.linearRampToValueAtTime(volume, t + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
     osc.connect(gain).connect(audio.destination);
     osc.start(t);
     osc.stop(t + duration + 0.05);
   });
+}
+
+// Notas de uma peça: carroça toca uma vez só (as duas metades são a mesma nota).
+export function playTileNotes(tile) {
+  playNotes(tile.a === tile.b ? [tile.a] : [tile.a, tile.b]);
+}
+
+// --- Prévia no hover -------------------------------------------------------
+
+// Durante um arrasto o ponteiro varre a mesa; as prévias ficam suspensas
+// para não virar uma cascata de notas.
+let hoverEnabled = true;
+
+export function setHoverSoundsEnabled(enabled) {
+  hoverEnabled = enabled;
+}
+
+let lastHoverValue = null;
+let lastHoverAt = 0;
+
+export function playHoverNote(value) {
+  if (!hoverEnabled) return;
+  const now = performance.now();
+  if (value === lastHoverValue && now - lastHoverAt < HOVER_REPEAT_MS) return;
+  lastHoverValue = value;
+  lastHoverAt = now;
+  playNotes([value], { duration: HOVER_DURATION_S, volume: HOVER_VOLUME });
 }

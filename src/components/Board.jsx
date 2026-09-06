@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Tile from './Tile.jsx';
 import { layoutChain } from '../ui/layoutChain.js';
-import { playNotes } from '../ui/sound.js';
+import { playTileNotes } from '../ui/sound.js';
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
@@ -57,12 +57,15 @@ export default function Board({ board, dropSides = null, hoveredSide = null }) {
     const prev = prevIdsRef.current;
     const ids = new Set(board.map((p) => p.tile.id));
     prevIdsRef.current = ids;
-    if (prev === null) return;
-    const added = board.filter((p) => !prev.has(p.tile.id));
-    if (added.length === 1) {
-      const { tile } = added[0];
-      playNotes(tile.a === tile.b ? [tile.a] : [tile.a, tile.b]);
+
+    // Início de rodada: a mesa recomeça com a peça inicial, que também soa.
+    if (board.length === 1 && (prev === null || prev.size !== 1)) {
+      playTileNotes(board[0].tile);
+      return;
     }
+    if (prev === null) return; // entrou numa partida já em andamento
+    const added = board.filter((p) => !prev.has(p.tile.id));
+    if (added.length === 1) playTileNotes(added[0].tile);
   }, [board]);
 
   const unit = width > 0 && width < 520 ? 24 : 32;
