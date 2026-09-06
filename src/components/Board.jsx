@@ -1,53 +1,51 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Tile from './Tile.jsx';
 import { placedNoteOrder } from '../game/board.js';
-import { layoutChain } from '../ui/layoutChain.js';
+import {
+  layoutChain,
+  centralizar,
+  zoneRect,
+  oposta,
+  unidadeParaLargura,
+} from '../ui/layoutChain.js';
 import { playTileNotes } from '../ui/sound.js';
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
-// Zonas de soltura nas duas pontas da cadeia, adjacentes às peças das pontas,
-// na direção em que a cadeia cresce (respeitando a serpentina).
-function endZones(cells, unit, long, containerWidth) {
-  if (cells.length === 0) return null;
+// Zonas de encaixe nas duas pontas, encostadas no sentido em que cada uma
+// cresce — inclusive quando a ponta está subindo ou descendo.
+function endZones(layout, offsetX, offsetY, larguraVisivel) {
+  const { rects, long, gap } = layout;
+  if (!rects || rects.length === 0) return null;
   const size = long;
-  const gap = 6;
-  const first = cells[0];
-  const last = cells[cells.length - 1];
-  const firstW = first.vertical ? unit : long;
-  const lastW = last.vertical ? unit : long;
-  // A ponta esquerda cresce contra a direção de leitura da linha da primeira
-  // peça; a direita, a favor da linha da última.
-  const leftX = first.flipped ? first.x + firstW + gap : first.x - gap - size;
-  const rightX = last.flipped ? last.x - gap - size : last.x + lastW + gap;
-  const centerY = (cell) => cell.y + (cell.vertical ? long : unit) / 2;
+  const folga = Math.max(gap, 6);
+  const mover = (z) => ({
+    x: clamp(z.x + offsetX, 0, Math.max(0, larguraVisivel - size)),
+    y: z.y + offsetY,
+  });
   return {
     size,
-    left: {
-      x: clamp(leftX, 0, containerWidth - size),
-      y: centerY(first) - size / 2,
-    },
-    right: {
-      x: clamp(rightX, 0, containerWidth - size),
-      y: centerY(last) - size / 2,
-    },
+    left: mover(zoneRect(rects[0], oposta(layout.dirPrimeira), size, folga)),
+    right: mover(zoneRect(rects[rects.length - 1], layout.dirUltima, size, folga)),
   };
 }
 
-// Mesa: cadeia em serpentina, com posições absolutas animadas via transição CSS.
-// Durante um arrasto, mostra zonas de encaixe nas pontas válidas para a peça.
-export default function Board({ board, dropSides = null, hoveredSide = null }) {
-  const containerRef = useRef(null);
-  const [width, setWidth] = useState(0);
+// Mesa: a cadeia anda em quatro direções (segue reto ou vira para cima/baixo
+// por sorteio) e fica centralizada na área visível. As posições são absolutas
+// e animadas por transição CSS.
+export default function Board({ board, seed = 0, dropSides = null, hoveredSide = null }) {
+  const areaRef = useRef(null);
+  const [area, setArea] = useState({ largura: 0, altura: 0 });
 
   useLayoutEffect(() => {
-    const el = containerRef.current;
+    const el = areaRef.current;
     if (!el) return;
-    const observer = new ResizeObserver((entries) => {
-      setWidth(entries[0].contentRect.width);
+    const observer = new ResizeObserver(([entrada]) => {
+      const r = entrada.contentRect;
+      setArea({ largura: r.width, altura: r.height });
     });
     observer.observe(el);
-    setWidth(el.clientWidth);
+    setArea({ largura: el.clientWidth, altura: el.clientHeight });
     return () => observer.disconnect();
   }, []);
 
@@ -70,20 +68,23 @@ export default function Board({ board, dropSides = null, hoveredSide = null }) {
     playTileNotes(...placedNoteOrder(board, novas[0]));
   }, [board]);
 
-  const unit = width > 0 && width < 520 ? 24 : 32;
-  const { cells, height, long } =
-    width > 0 ? layoutChain(board, width, unit) : { cells: [], height: 0, long: unit * 2 };
-  const zones = dropSides ? endZones(cells, unit, long, width) : null;
+  const pronto = area.largura > 0;
+  const unit = unidadeParaLargura(area.largura);
+  const layout = pronto
+    ? layoutChain(board, area.largura, unit, seed, area.altura)
+    : { cells: [], rects: [], larguraCadeia: 0, alturaCadeia: 0, minX: 0, minY: 0, long: unit * 2 };
+  const { offsetX, offsetY, height } = centralizar(layout, area.largura, area.altura);
+  const zones = pronto && dropSides ? endZones(layout, offsetX, offsetY, area.largura) : null;
 
   return (
-    <div className="board-scroll">
-      <div className="board" ref={containerRef} style={{ height: `${Math.max(height, unit * 2.4)}px` }}>
+    <div className="board-scroll" ref={areaRef}>
+      <div className="board" style={{ height: `${Math.max(height, unit * 2.4)}px` }}>
         {board.length === 0 && <p className="board-empty">A mesa está vazia</p>}
-        {cells.map((cell) => (
+        {layout.cells.map((cell) => (
           <div
             key={cell.id}
             className="board-cell"
-            style={{ transform: `translate(${cell.x}px, ${cell.y}px)` }}
+            style={{ transform: `translate(${cell.x + offsetX}px, ${cell.y + offsetY}px)` }}
           >
             <Tile
               a={cell.flipped ? cell.right : cell.left}

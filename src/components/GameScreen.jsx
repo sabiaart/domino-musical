@@ -111,6 +111,7 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNextRound, 
 
       <Board
         board={view.board}
+        seed={view.round}
         dropSides={drag ? drag.sides : null}
         hoveredSide={hoveredSide}
       />
