@@ -379,7 +379,11 @@ input[type='text']:focus {
 .game-screen {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  /* Presa às bordas da janela em vez de uma altura em dvh: no iPhone deitado,
+     100dvh deixava uma faixa vazia embaixo (área do indicador de início),
+     que com viewport-fit=cover pertence à página. */
+  position: fixed;
+  inset: 0;
   overflow: hidden;
   box-sizing: border-box;
   /* Áreas que o celular cobre (entalhe, barra de gestos, botões do sistema):
