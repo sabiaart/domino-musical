@@ -160,7 +160,8 @@ button {
 .lobby {
   max-width: 430px;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: max(32px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+    max(48px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -380,6 +381,12 @@ input[type='text']:focus {
   flex-direction: column;
   height: 100dvh;
   overflow: hidden;
+  box-sizing: border-box;
+  /* Áreas que o celular cobre (entalhe, barra de gestos, botões do sistema):
+     com viewport-fit=cover a página vai até a borda, então o conteúdo fica
+     dentro das margens seguras. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
 }
 
 .game-header {
@@ -1029,8 +1036,10 @@ input[type='text']:focus {
       'board controls'
       'hand  controls';
     column-gap: 6px;
-    padding-right: max(6px, env(safe-area-inset-right));
-    padding-left: env(safe-area-inset-left);
+    /* Deitado, a barra do sistema e o entalhe ficam nas laterais e embaixo:
+       além das margens seguras informadas, uma folga mínima em toda volta. */
+    padding: max(6px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   }
 
   /* O rodapé se desfaz: mão, resultado e controles viram itens da grade. */
@@ -1107,7 +1116,7 @@ input[type='text']:focus {
   }
 
   .board-scroll {
-    margin: 6px 0 4px 6px;
+    margin: 0 0 4px;
     padding: 8px 6px;
   }
 
@@ -1135,7 +1144,7 @@ input[type='text']:focus {
 
   .hand-area {
     grid-area: hand;
-    padding: 0 0 6px 6px;
+    padding: 0;
   }
 
   .hand .tile {
@@ -1147,9 +1156,11 @@ input[type='text']:focus {
     min-height: 0;
     flex-wrap: nowrap;
     overflow-x: auto;
+    overflow-y: hidden;
     justify-content: safe center;
-    padding-top: 40px; /* espaço para o balão de escolha, acima da peça */
-    margin-top: -40px;
+    /* espaço para o balão de escolha (acima da peça) e o realce da peça */
+    padding: 48px 4px 4px;
+    margin-top: -48px;
   }
 
   .hand-hint {
@@ -1162,7 +1173,7 @@ input[type='text']:focus {
     align-content: safe end;
     justify-content: stretch;
     gap: 5px;
-    padding-bottom: 6px;
+    padding-bottom: 0;
     overflow-y: auto;
   }
 
