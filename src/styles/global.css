@@ -869,6 +869,12 @@ input[type='text']:focus {
   font-size: 0.9rem;
 }
 
+/* Fim de jogo: comprar e passar não servem mais, e "Sair" repete o "Voltar
+   ao menu" do resultado — saem e liberam espaço. */
+.game-screen.ended .controls > .btn {
+  display: none;
+}
+
 /* ---------- Resultado do jogo (abaixo da mesa) ---------- */
 
 .round-result {
@@ -1004,5 +1010,209 @@ input[type='text']:focus {
 
   .logo {
     font-size: 2rem;
+  }
+}
+
+/* ---------- Celular deitado (paisagem, tela baixa) ----------
+   Na horizontal sobra largura e falta altura: empilhar tudo deixava a mesa
+   com poucos pixels. Aqui a mesa ocupa a altura toda à esquerda, com a mão
+   embaixo dela, e as informações e os controles vão para uma coluna à direita. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .game-screen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(210px, 32vw, 260px);
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'board header'
+      'board banner'
+      'board result'
+      'board controls'
+      'hand  controls';
+    column-gap: 6px;
+    padding-right: max(6px, env(safe-area-inset-right));
+    padding-left: env(safe-area-inset-left);
+  }
+
+  /* O rodapé se desfaz: mão, resultado e controles viram itens da grade. */
+  .game-footer {
+    display: contents;
+  }
+
+  .game-header {
+    grid-area: header;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 6px 0 0;
+  }
+
+  .players-bar {
+    gap: 4px;
+  }
+
+  .opponent {
+    padding: 4px 8px;
+  }
+
+  .opponent {
+    min-width: 0;
+  }
+
+  .opponent-tiles {
+    flex-wrap: wrap;
+  }
+
+  .opponent-tiles .tile {
+    --unit: 9px;
+  }
+
+  .scoreboard {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    font-size: 0.78rem;
+  }
+
+  .scoreboard ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    flex: 1;
+    margin: 0;
+  }
+
+  .scoreboard li {
+    gap: 4px;
+    padding: 0;
+  }
+
+  .scoreboard-meta {
+    border-top: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.72rem;
+  }
+
+  .turn-banner {
+    grid-area: banner;
+    padding: 2px 4px;
+    font-size: 0.85rem;
+  }
+
+  .board-area {
+    grid-area: board;
+    min-height: 0;
+  }
+
+  .board-scroll {
+    margin: 6px 0 4px 6px;
+    padding: 8px 6px;
+  }
+
+  .round-result {
+    grid-area: result;
+    margin: 4px 0;
+    padding: 6px 10px;
+    gap: 6px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .round-result h2 {
+    font-size: 0.95rem;
+  }
+
+  .result-list {
+    font-size: 0.78rem;
+  }
+
+  .round-result .btn {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .hand-area {
+    grid-area: hand;
+    padding: 0 0 6px 6px;
+  }
+
+  .hand .tile {
+    --unit: clamp(26px, 3.6vw, 32px);
+  }
+
+  .hand {
+    gap: 5px;
+    min-height: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: safe center;
+    padding-top: 40px; /* espaço para o balão de escolha, acima da peça */
+    margin-top: -40px;
+  }
+
+  .hand-hint {
+    display: none;
+  }
+
+  .controls {
+    grid-area: controls;
+    /* "safe": se não couber, rola em vez de vazar por cima do resultado. */
+    align-content: safe end;
+    justify-content: stretch;
+    gap: 5px;
+    padding-bottom: 6px;
+    overflow-y: auto;
+  }
+
+  .controls .btn {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .interval-modes,
+  .speed-control {
+    flex: 1 1 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    justify-content: space-between;
+  }
+
+  .controls {
+    overflow-x: hidden;
+  }
+
+  .interval-label {
+    padding: 0 4px;
+    font-size: 0.72rem;
+  }
+
+  .interval-modes button {
+    padding: 4px 7px;
+    font-size: 0.8rem;
+  }
+
+  .speed-control input[type='range'] {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .chain-transport {
+    top: 10px;
+    right: 10px;
+  }
+
+  .chain-transport button {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* Menu: o título encolhe para caber sem tanta rolagem. */
+  .logo {
+    font-size: 1.8rem;
+    margin: 6px 0;
   }
 }

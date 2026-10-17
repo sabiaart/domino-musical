@@ -132,7 +132,7 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
   }
 
   return (
-    <div className="game-screen">
+    <div className={`game-screen ${phase === 'gameEnd' ? 'ended' : ''}`}>
       <header className="game-header">
         <PlayersBar
           players={players}
