@@ -31,7 +31,9 @@ uma nota e a seguinte, subindo ou descendo:
 A prioridade é o intervalo **entre as duas notas da mesma peça**, que sempre
 segue o modo. Entre uma peça e a seguinte o modo também vale quando dá; perto
 das bordas da extensão, a peça muda de oitava em relação à anterior para
-manter o próprio intervalo. O botão 🔊 silencia tudo.
+manter o próprio intervalo. As notas soam perto de 0 dB, com um limitador
+que evita distorção quando se sobrepõem; a barra ao lado do 🔊 regula o
+volume, e o 🔊 silencia tudo.
 
 Modos de jogo:
 

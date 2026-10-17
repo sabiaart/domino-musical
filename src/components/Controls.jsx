@@ -14,6 +14,8 @@ export default function Controls({
   onExit,
   soundOn,
   onToggleSound,
+  volume,
+  onVolume,
   intervalMode,
   onIntervalMode,
   chainGap,
@@ -58,15 +60,28 @@ export default function Controls({
         />
         <span className="speed-value">{chainGap.toFixed(1).replace('.', ',')} s</span>
       </label>
-      <button
-        type="button"
-        className="btn ghost"
-        onClick={onToggleSound}
-        title={soundOn ? 'Silenciar notas' : 'Ativar notas'}
-        aria-label={soundOn ? 'Silenciar notas' : 'Ativar notas'}
-      >
-        {soundOn ? '🔊' : '🔇'}
-      </button>
+      <div className="speed-control volume-control">
+        <button
+          type="button"
+          className="mute-toggle"
+          onClick={onToggleSound}
+          title={soundOn ? 'Silenciar notas' : 'Ativar notas'}
+          aria-label={soundOn ? 'Silenciar notas' : 'Ativar notas'}
+        >
+          {soundOn ? '🔊' : '🔇'}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={Math.round(volume * 100)}
+          onChange={(e) => onVolume(parseInt(e.target.value, 10) / 100)}
+          aria-label="Volume"
+          title="Volume"
+        />
+        <span className="speed-value">{Math.round(volume * 100)}%</span>
+      </div>
       <button type="button" className="btn ghost" onClick={onExit}>
         Sair
       </button>

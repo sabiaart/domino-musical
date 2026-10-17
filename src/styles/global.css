@@ -844,6 +844,24 @@ input[type='text']:focus {
   cursor: pointer;
 }
 
+.volume-control input[type='range'] {
+  width: 90px;
+}
+
+.mute-toggle {
+  border: none;
+  background: transparent;
+  color: var(--ivory);
+  font-size: 1.05rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mute-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .speed-value {
   min-width: 3.2em;
   font-variant-numeric: tabular-nums;

@@ -12,6 +12,8 @@ import {
   setIntervalMode,
   getChainGap,
   setChainGap,
+  getVolume,
+  setVolume,
   CHAIN_GAP_MIN_S,
   CHAIN_GAP_MAX_S,
 } from '../ui/sound.js';
@@ -79,6 +81,16 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
   const myTurn = phase === 'playing' && currentPlayer === myIndex && !paused;
   const [soundOn, setSoundOn] = useState(() => !isMuted());
   const [intervalMode, setIntervalModeState] = useState(getIntervalMode);
+  const [volume, setVolumeState] = useState(getVolume);
+  const changeVolume = (v) => {
+    setVolume(v);
+    setVolumeState(getVolume());
+    // Mexer no volume com o som desligado religa o som.
+    if (!soundOn && v > 0) {
+      setMuted(false);
+      setSoundOn(true);
+    }
+  };
   const [chainGap, setChainGapState] = useState(getChainGap);
   const changeChainGap = (segundos) => {
     setChainGap(segundos);
@@ -177,6 +189,8 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
           onExit={onExit}
           soundOn={soundOn}
           onToggleSound={toggleSound}
+          volume={volume}
+          onVolume={changeVolume}
           intervalMode={intervalMode}
           onIntervalMode={changeIntervalMode}
           chainGap={chainGap}

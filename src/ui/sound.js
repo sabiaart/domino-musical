@@ -15,11 +15,13 @@ const INTERVAL_KEY = 'domino.intervalos';
 // Peça colocada na mesa: uma nota por vez, com 1s entre elas.
 const PLAY_GAP_S = 1.0;
 const PLAY_DURATION_S = 0.5;
-const PLAY_VOLUME = 0.22;
+// Pico de cada nota perto de 0 dBFS (0,9 ≈ -1 dB). Notas que se sobrepõem
+// (andamento rápido) passam por um limitador antes da saída, sem distorcer.
+const PLAY_VOLUME = 0.9;
 
 // Prévia ao passar o mouse: mais curta e mais baixa que a jogada.
 const HOVER_DURATION_S = 0.35;
-const HOVER_VOLUME = 0.12;
+const HOVER_VOLUME = 0.5;
 const HOVER_REPEAT_MS = 140; // evita retrigger na mesma nota em varreduras rápidas
 
 // A placa de som leva alguns milissegundos para começar a produzir áudio depois
@@ -31,6 +33,34 @@ const NORMAL_LEAD_S = 0.02;
 
 let ctx = null;
 let ctxCreatedAt = 0;
+let saida = null; // volume geral → limitador → alto-falante
+
+const VOLUME_KEY = 'domino.volume';
+let volumeAtual = null;
+
+// Volume geral, de 0 a 1 (padrão: 1, o máximo).
+export function getVolume() {
+  if (volumeAtual !== null) return volumeAtual;
+  let v = 1;
+  try {
+    const salvo = parseFloat(localStorage.getItem(VOLUME_KEY));
+    if (salvo >= 0 && salvo <= 1) v = salvo;
+  } catch {
+    // sem armazenamento: usa o padrão
+  }
+  volumeAtual = v;
+  return v;
+}
+
+export function setVolume(v) {
+  volumeAtual = Math.min(1, Math.max(0, v));
+  try {
+    localStorage.setItem(VOLUME_KEY, String(volumeAtual));
+  } catch {
+    // vale só nesta sessão da página
+  }
+  if (saida && ctx) saida.gain.setTargetAtTime(volumeAtual, ctx.currentTime, 0.02);
+}
 
 export function isMuted() {
   return localStorage.getItem(MUTE_KEY) === '1';
@@ -76,6 +106,15 @@ function getContext() {
     if (!AudioCtx) return null;
     ctx = new AudioCtx();
     ctxCreatedAt = performance.now();
+    const limitador = ctx.createDynamicsCompressor();
+    limitador.threshold.value = -1;
+    limitador.knee.value = 0;
+    limitador.ratio.value = 20;
+    limitador.attack.value = 0.002;
+    limitador.release.value = 0.1;
+    saida = ctx.createGain();
+    saida.gain.value = getVolume();
+    saida.connect(limitador).connect(ctx.destination);
   }
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
@@ -113,7 +152,7 @@ export function playNotes(
     gain.gain.setValueAtTime(0, t);
     gain.gain.linearRampToValueAtTime(volume, t + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-    osc.connect(gain).connect(audio.destination);
+    osc.connect(gain).connect(saida);
     osc.start(t);
     osc.stop(t + duration + 0.05);
     oscs.push(osc);
