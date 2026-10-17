@@ -13,7 +13,7 @@ const AI_QUIET_DELAY_MS = 900;
 
 export function useSinglePlayerGame(playerName) {
   const [state, setState] = useState(() =>
-    reduce(createMatch([playerName || 'Você', 'Computador']), { type: 'START_ROUND' })
+    reduce(createMatch([playerName || 'Você', 'Computador']), { type: 'START_GAME' })
   );
 
   const dispatch = useCallback((action) => {
@@ -64,9 +64,7 @@ export function useSinglePlayerGame(playerName) {
         name,
         tileCount: state.hands[i]?.length ?? 0,
       })),
-      scores: state.scores,
-      targetScore: state.targetScore,
-      round: state.round,
+      seed: state.seed,
       board: state.board,
       ends,
       myHand,
@@ -74,8 +72,7 @@ export function useSinglePlayerGame(playerName) {
       boneyardCount: state.boneyard.length,
       currentPlayer: state.currentPlayer,
       phase: state.phase,
-      roundResult: state.roundResult,
-      matchWinner: state.matchWinner,
+      result: state.result,
       canDraw: mustDraw(myHand, ends, state.boneyard),
       canPass: mustPass(myHand, ends, state.boneyard),
       paused: null,
@@ -84,12 +81,12 @@ export function useSinglePlayerGame(playerName) {
 
   const actions = useMemo(
     () => ({
-      play: (tileId, side) => dispatch({ type: 'PLAY_TILE', player: 0, tileId, side }),
+      play: (tileId, side, orient) =>
+        dispatch({ type: 'PLAY_TILE', player: 0, tileId, side, orient }),
       draw: () => dispatch({ type: 'DRAW_TILE', player: 0 }),
       pass: () => dispatch({ type: 'PASS', player: 0 }),
-      nextRound: () => dispatch({ type: 'START_ROUND' }),
       newMatch: () =>
-        setState(reduce(createMatch([playerName || 'Você', 'Computador']), { type: 'START_ROUND' })),
+        setState(reduce(createMatch([playerName || 'Você', 'Computador']), { type: 'START_GAME' })),
     }),
     [dispatch, playerName]
   );

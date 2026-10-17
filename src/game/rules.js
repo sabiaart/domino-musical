@@ -1,28 +1,17 @@
 // Regras do dominó "Draw" (compra).
 
-import { isDouble, tileSum } from './tiles.js';
+import { isDouble } from './tiles.js';
 import { getEnds, playableSides, canPlay } from './board.js';
 
-// Quem começa: maior carroça; se ninguém tiver carroça, a peça de maior soma
-// (desempate: maior valor alto). Retorna { player, tile }.
+// Quem começa: quem tiver a carroça mais grave, na ordem Dó-Dó, Ré-Ré, Mi-Mi…
+// e começa jogando essa peça. Ninguém com carroça → null (aí compram do monte
+// até aparecer uma). Retorna { player, tile } | null.
 export function findStartingPlayer(hands) {
   let best = null;
   for (let p = 0; p < hands.length; p++) {
     for (const tile of hands[p]) {
       if (!isDouble(tile)) continue;
-      if (best === null || tile.a > best.tile.a) {
-        best = { player: p, tile };
-      }
-    }
-  }
-  if (best) return best;
-  for (let p = 0; p < hands.length; p++) {
-    for (const tile of hands[p]) {
-      if (
-        best === null ||
-        tileSum(tile) > tileSum(best.tile) ||
-        (tileSum(tile) === tileSum(best.tile) && tile.b > best.tile.b)
-      ) {
+      if (best === null || tile.a < best.tile.a) {
         best = { player: p, tile };
       }
     }

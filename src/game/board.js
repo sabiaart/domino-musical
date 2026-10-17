@@ -1,6 +1,8 @@
 // Mesa: cadeia de peças orientadas, da ponta esquerda à direita.
-// Cada item colocado: { tile, left, right } — left/right são os valores
-// voltados para cada direção da cadeia.
+// Cada item colocado: { tile, left, right, orient? } — left/right são os
+// valores voltados para cada direção da cadeia; `orient` ('horizontal' |
+// 'vertical') é a posição que o jogador escolheu para a peça na mesa (só em
+// peças de notas diferentes; sem ela, o desenho decide sozinho).
 
 import { isDouble } from './tiles.js';
 
@@ -23,9 +25,21 @@ export function canPlay(tile, ends) {
   return playableSides(tile, ends).length > 0;
 }
 
+export const ORIENTS = ['horizontal', 'vertical'];
+
 // Coloca a peça na ponta indicada, orientando-a automaticamente.
 // Retorna uma nova mesa; lança erro se o encaixe for inválido.
-export function placeTile(board, tile, side) {
+// `seq` marca a ordem de entrada na mesa: o desenho da cadeia é refeito nessa
+// ordem, para que as peças já postas nunca mudem de lugar.
+export function placeTile(board, tile, side, orient) {
+  const placed = placeBare(board, tile, side);
+  const idx = side === 'left' && board.length > 0 ? 0 : placed.length - 1;
+  const extra = { seq: board.length };
+  if (ORIENTS.includes(orient) && !isDouble(tile)) extra.orient = orient;
+  return placed.map((p, i) => (i === idx ? { ...p, ...extra } : p));
+}
+
+function placeBare(board, tile, side) {
   const ends = getEnds(board);
   if (ends === null) {
     return [{ tile, left: tile.a, right: tile.b }];

@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
+  setaParaVizinha,
+  orientacoesPossiveis,
   layoutChain,
   centralizar,
   zoneRect,
@@ -206,6 +208,36 @@ describe('layoutChain', () => {
     }
   });
 
+  it('carroça sempre liga pelo meio, dos dois lados', () => {
+    // A cadeia nunca vira numa carroça: ela fica atravessada e as vizinhas
+    // encostam no centro dela, em lados opostos.
+    for (const [largura, alturaVisivel] of [[380, 260], [700, 360], [1100, 420]]) {
+      const u = unidadeParaLargura(largura);
+      for (let s = 1; s <= 25; s++) {
+        const board = cadeia(28, s);
+        const l = layoutChain(board, largura, u, s, alturaVisivel);
+        const rs = l.cells.map((c) => rect(c, u));
+        const centro = (r) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+        for (let i = 1; i < rs.length - 1; i++) {
+          if (board[i].tile.a !== board[i].tile.b) continue;
+          const vizinhas = [i - 1, i + 1].filter((j) => encosto(rs[i], rs[j], l.gap));
+          const c = centro(rs[i]);
+          const lados = vizinhas.map((j) => {
+            const v = rs[j];
+            // A vizinha cruza a linha do meio da carroça (atravessada a ela).
+            const cruzaMeio = rs[i].h > rs[i].w
+              ? v.y < c.y && v.y + v.h > c.y
+              : v.x < c.x && v.x + v.w > c.x;
+            expect(cruzaMeio, `semente ${s}: ${l.cells[j].id} não encosta no meio de ${l.cells[i].id}`).toBe(true);
+            const cv = centro(v);
+            return rs[i].h > rs[i].w ? Math.sign(cv.x - c.x) : Math.sign(cv.y - c.y);
+          });
+          if (lados.length === 2) expect(lados[0]).toBe(-lados[1]);
+        }
+      }
+    }
+  });
+
   it('peça comum que vira fica em pé, encostando pela metade que conecta', () => {
     const m = { unit: 32, long: 64, gap: 3, larguraMax: 9999, alturaMax: 9999 };
     // Cadeia vindo da direita, saindo pela ponta (100, 50); vira para baixo.
@@ -274,5 +306,115 @@ describe('zoneRect', () => {
   it('oposta inverte a direção', () => {
     expect(oposta('right')).toBe('left');
     expect(oposta('up')).toBe('down');
+  });
+});
+
+describe('setaParaVizinha', () => {
+  const r = (x, y, w = 40, h = 20) => ({ x, y, w, h });
+  const rects = [r(0, 0), r(42, 0), r(84, 0, 20, 40), r(84, 42, 20, 40), r(42, 84)];
+
+  it('aponta para a vizinha como ela aparece na tela', () => {
+    expect(setaParaVizinha(rects, 1, -1)).toBe('◀');
+    expect(setaParaVizinha(rects, 1, 1)).toBe('▶');
+    expect(setaParaVizinha(rects, 3, -1)).toBe('▲');
+    expect(setaParaVizinha(rects, 2, 1)).toBe('▼');
+    expect(setaParaVizinha(rects, 4, -1)).toBe('▶'); // cadeia voltando para a esquerda
+  });
+
+  it('nas pontas não há seta para fora da cadeia', () => {
+    expect(setaParaVizinha(rects, 0, -1)).toBeNull();
+    expect(setaParaVizinha(rects, 4, 1)).toBeNull();
+  });
+});
+
+describe('posição escolhida pelo jogador', () => {
+  // Carroça no meio da mesa larga, com espaço de sobra para os dois lados.
+  const base = placeTile([], makeTile(3, 3), 'right');
+
+  it('placeTile guarda a posição só em peças de notas diferentes', () => {
+    const b = placeTile(base, makeTile(3, 5), 'right', 'vertical');
+    expect(b[1].orient).toBe('vertical');
+    const d = placeTile(b, makeTile(5, 5), 'right', 'horizontal');
+    expect(d[2].orient).toBeUndefined();
+  });
+
+  it('a peça fica na posição escolhida, nas duas pontas', () => {
+    for (const side of ['left', 'right']) {
+      for (const orient of ['horizontal', 'vertical']) {
+        // Uma peça comum entre a carroça e a nova, para a nova poder virar.
+        let board = placeTile(base, makeTile(1, 3), side, 'horizontal');
+        board = placeTile(board, makeTile(6, 1), side, orient);
+        const idx = side === 'left' ? 0 : board.length - 1;
+        const { cells } = layoutChain(board, 900, UNIT, 1, 400);
+        expect(cells[idx].vertical, `${side} ${orient}`).toBe(orient === 'vertical');
+      }
+    }
+  });
+
+  it('orientacoesPossiveis: com espaço, as duas; carroça, nenhuma', () => {
+    const board = placeTile(base, makeTile(3, 5), 'right', 'horizontal');
+    expect(orientacoesPossiveis(board, makeTile(5, 1), 'right', 900, 400, 1)).toEqual([
+      'horizontal',
+      'vertical',
+    ]);
+    expect(orientacoesPossiveis(board, makeTile(5, 5), 'right', 900, 400, 1)).toEqual([]);
+  });
+
+  it('logo depois de uma carroça a peça só pode seguir reto', () => {
+    // A carroça entrega a cadeia pelo lado longo: virar ali seria encaixe inválido.
+    const opcoes = orientacoesPossiveis(base, makeTile(3, 5), 'right', 900, 400, 1);
+    expect(opcoes).toEqual(['horizontal']);
+  });
+});
+
+describe('peças já postas não mudam', () => {
+  it('a cada jogada, as peças anteriores mantêm lugar e forma', () => {
+    for (const [largura, altura] of [[380, 260], [700, 360], [1100, 420]]) {
+      const u = unidadeParaLargura(largura);
+      for (let s = 1; s <= 30; s++) {
+        const monte = shuffle(createAllTiles(), seededRng(s));
+        const rng = seededRng(s + 1000);
+        let board = placeTile([], monte.pop(), 'right');
+        let antes = layoutChain(board, largura, u, s, altura);
+        while (monte.length > 0) {
+          const ends = getEnds(board);
+          const i = monte.findIndex((t) => canPlay(t, ends));
+          if (i < 0) break;
+          const tile = monte.splice(i, 1)[0];
+          const lados = playableSides(tile, ends);
+          const lado = lados[Math.floor(rng() * lados.length)];
+          const orient = rng() < 0.5 ? undefined : rng() < 0.5 ? 'horizontal' : 'vertical';
+          board = placeTile(board, tile, lado, orient);
+          const depois = layoutChain(board, largura, u, s, altura);
+          const pos = new Map(depois.cells.map((c) => [c.id, c]));
+          for (const c of antes.cells) {
+            const d = pos.get(c.id);
+            expect(
+              [d.x, d.y, d.vertical, d.flipped],
+              `semente ${s}, ${largura}px: ${c.id} mudou ao entrar ${tile.id}`
+            ).toEqual([c.x, c.y, c.vertical, c.flipped]);
+          }
+          antes = depois;
+        }
+      }
+    }
+  });
+
+  it('na tela, a primeira peça fica no centro e nada se desloca', () => {
+    const monte = shuffle(createAllTiles(), seededRng(4));
+    let board = placeTile([], monte.pop(), 'right');
+    const l0 = layoutChain(board, 900, UNIT, 4, 400);
+    const c0 = centralizar(l0, 900, 400);
+    const x0 = l0.cells[0].x + c0.offsetX;
+    for (let k = 0; k < 6; k++) {
+      const ends = getEnds(board);
+      const i = monte.findIndex((t) => canPlay(t, ends));
+      const tile = monte.splice(i, 1)[0];
+      board = placeTile(board, tile, playableSides(tile, ends).at(-1));
+    }
+    const l = layoutChain(board, 900, UNIT, 4, 400);
+    const c = centralizar(l, 900, 400);
+    const primeira = l.cells.find((cell) => cell.id === l0.cells[0].id);
+    expect(primeira.x + c.offsetX).toBeCloseTo(x0, 5);
   });
 });

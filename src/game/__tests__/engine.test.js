@@ -6,37 +6,63 @@ import { seededRng } from './helpers.js';
 
 const T = makeTile;
 
-// Monta um estado de rodada em andamento com mãos/mesa/monte controlados.
-function playingState({ hands, board, boneyard = [], currentPlayer = 0, scores }) {
+// Monta um estado de jogo em andamento com mãos/mesa/monte controlados.
+function playingState({ hands, board, boneyard = [], currentPlayer = 0 }) {
   const base = createMatch(hands.map((_, i) => `J${i + 1}`));
   return {
     ...base,
     phase: PHASES.PLAYING,
-    round: 1,
     hands,
     board,
     boneyard,
     currentPlayer,
-    scores: scores ?? base.scores,
   };
 }
 
-describe('START_ROUND', () => {
+describe('START_GAME', () => {
   it('distribui, joga automaticamente a peça inicial e passa a vez', () => {
-    const state = reduce(createMatch(['Eu', 'PC']), { type: 'START_ROUND', rng: seededRng(1) });
+    const state = reduce(createMatch(['Eu', 'PC']), { type: 'START_GAME', rng: seededRng(1) });
     expect(state.phase).toBe(PHASES.PLAYING);
-    expect(state.round).toBe(1);
     expect(state.board).toHaveLength(1);
-    const starter = state.events.find((e) => e.type === 'roundStart').starter;
+    const starter = state.events.find((e) => e.type === 'gameStart').starter;
     expect(state.hands[starter]).toHaveLength(6);
     expect(state.hands[1 - starter]).toHaveLength(7);
     expect(state.boneyard).toHaveLength(28 - 14);
     expect(state.currentPlayer).toBe((starter + 1) % 2);
   });
 
-  it('não permite iniciar rodada com partida em andamento', () => {
-    const state = reduce(createMatch(['A', 'B']), { type: 'START_ROUND', rng: seededRng(1) });
-    expect(() => reduce(state, { type: 'START_ROUND', rng: seededRng(2) })).toThrow();
+  it('não permite iniciar um jogo já começado', () => {
+    const state = reduce(createMatch(['A', 'B']), { type: 'START_GAME', rng: seededRng(1) });
+    expect(() => reduce(state, { type: 'START_GAME', rng: seededRng(2) })).toThrow();
+  });
+});
+
+describe('início do jogo', () => {
+  it('sempre começa com a carroça mais grave em jogo', () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const state = reduce(createMatch(['A', 'B']), { type: 'START_GAME', rng: seededRng(seed) });
+      const first = state.board[0].tile;
+      expect(first.a).toBe(first.b);
+      const restantes = state.hands.flat().filter((t) => t.a === t.b);
+      for (const t of restantes) expect(t.a).toBeGreaterThan(first.a);
+    }
+  });
+
+  it('sem carroça nas mãos, compram do monte até aparecer uma', () => {
+    // Procura uma distribuição sem carroças nas mãos.
+    let achou = false;
+    for (let seed = 1; seed <= 3000 && !achou; seed++) {
+      const state = reduce(createMatch(['A', 'B']), { type: 'START_GAME', rng: seededRng(seed) });
+      const draws = state.events.filter((e) => e.type === 'drew');
+      if (draws.length === 0) continue;
+      achou = true;
+      const last = draws[draws.length - 1];
+      expect(last.tile.a).toBe(last.tile.b); // a última compra trouxe a carroça
+      expect(state.board[0].tile.id).toBe(last.tile.id);
+      expect(draws.slice(0, -1).every((e) => e.tile.a !== e.tile.b)).toBe(true);
+      expect(state.boneyard.length).toBe(14 - draws.length);
+    }
+    expect(achou).toBe(true);
   });
 });
 
@@ -76,27 +102,15 @@ describe('PLAY_TILE', () => {
     ).toThrow(/não encaixa/);
   });
 
-  it('batida encerra a rodada e pontua a soma das mãos dos perdedores', () => {
+  it('batida encerra o jogo com o vencedor', () => {
     const state = playingState({
       hands: [[T(2, 3)], [T(5, 6), T(1, 1)]],
       board: placeTile([], T(2, 5), 'right'),
     });
     const next = reduce(state, { type: 'PLAY_TILE', player: 0, tileId: '2-3', side: 'left' });
-    expect(next.phase).toBe(PHASES.ROUND_END);
-    expect(next.roundResult).toMatchObject({ winner: 0, points: 13, reason: 'domino' });
-    expect(next.scores).toEqual([13, 0]);
-  });
-
-  it('atingir a meta encerra a partida', () => {
-    const state = playingState({
-      hands: [[T(2, 3)], [T(5, 6), T(6, 6)]],
-      board: placeTile([], T(2, 5), 'right'),
-      scores: [90, 0],
-    });
-    const next = reduce(state, { type: 'PLAY_TILE', player: 0, tileId: '2-3', side: 'left' });
-    expect(next.phase).toBe(PHASES.MATCH_END);
-    expect(next.matchWinner).toBe(0);
-    expect(next.scores[0]).toBeGreaterThanOrEqual(100);
+    expect(next.phase).toBe(PHASES.GAME_END);
+    expect(next.result).toEqual({ winner: 0, reason: 'domino', tilesLeft: [0, 2] });
+    expect(() => reduce(next, { type: 'START_GAME' })).toThrow();
   });
 });
 
@@ -138,12 +152,12 @@ describe('DRAW_TILE e PASS', () => {
     expect(() => reduce(comJogada, { type: 'PASS', player: 0 })).toThrow(/jogada possível/);
   });
 
-  it('todos passam: jogo fechado, menor mão vence', () => {
+  it('todos passam: jogo fechado, vence quem tem menos peças', () => {
     // Pontas 2 e 5; ninguém tem 2 nem 5 e o monte está vazio.
     const state = playingState({
       hands: [
-        [T(0, 1)], // 1 ponto
-        [T(6, 6), T(3, 4)], // 19 pontos
+        [T(0, 1)], // 1 peça
+        [T(6, 6), T(3, 4)], // 2 peças
       ],
       board: placeTile([], T(2, 5), 'right'),
       boneyard: [],
@@ -152,9 +166,8 @@ describe('DRAW_TILE e PASS', () => {
     expect(afterP0.phase).toBe(PHASES.PLAYING);
     expect(afterP0.currentPlayer).toBe(1);
     const afterP1 = reduce(afterP0, { type: 'PASS', player: 1 });
-    expect(afterP1.phase).toBe(PHASES.ROUND_END);
-    expect(afterP1.roundResult).toMatchObject({ winner: 0, points: 19, reason: 'blocked' });
-    expect(afterP1.scores).toEqual([19, 0]);
+    expect(afterP1.phase).toBe(PHASES.GAME_END);
+    expect(afterP1.result).toMatchObject({ winner: 0, reason: 'blocked' });
   });
 
   it('jogada válida zera a sequência de passes', () => {
@@ -174,33 +187,30 @@ describe('DRAW_TILE e PASS', () => {
 });
 
 describe('partida completa (simulação)', () => {
-  it('rodadas se sucedem até alguém atingir 100 pontos', () => {
-    const rng = seededRng(2026);
-    let state = createMatch(['A', 'B']);
-    let guard = 0;
-    while (state.matchWinner === null && guard < 10000) {
-      guard++;
-      if (state.phase !== PHASES.PLAYING) {
-        state = reduce(state, { type: 'START_ROUND', rng });
-        continue;
+  it('jogos aleatórios sempre terminam com um resultado', () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      const rng = seededRng(seed);
+      let state = reduce(createMatch(['A', 'B', 'C']), { type: 'START_GAME', rng });
+      let guard = 0;
+      while (state.phase === PHASES.PLAYING && guard < 10000) {
+        guard++;
+        const p = state.currentPlayer;
+        const ends = getEnds(state.board);
+        const playable = state.hands[p].filter(
+          (t) => t.a === ends.left || t.b === ends.left || t.a === ends.right || t.b === ends.right
+        );
+        if (playable.length > 0) {
+          const tile = playable[0];
+          const side = tile.a === ends.left || tile.b === ends.left ? 'left' : 'right';
+          state = reduce(state, { type: 'PLAY_TILE', player: p, tileId: tile.id, side });
+        } else if (state.boneyard.length > 0) {
+          state = reduce(state, { type: 'DRAW_TILE', player: p });
+        } else {
+          state = reduce(state, { type: 'PASS', player: p });
+        }
       }
-      const p = state.currentPlayer;
-      const ends = getEnds(state.board);
-      const playable = state.hands[p].filter(
-        (t) => t.a === ends.left || t.b === ends.left || t.a === ends.right || t.b === ends.right
-      );
-      if (playable.length > 0) {
-        const tile = playable[0];
-        const side = tile.a === ends.left || tile.b === ends.left ? 'left' : 'right';
-        state = reduce(state, { type: 'PLAY_TILE', player: p, tileId: tile.id, side });
-      } else if (state.boneyard.length > 0) {
-        state = reduce(state, { type: 'DRAW_TILE', player: p });
-      } else {
-        state = reduce(state, { type: 'PASS', player: p });
-      }
+      expect(state.phase).toBe(PHASES.GAME_END);
+      expect(['domino', 'blocked', 'tie']).toContain(state.result.reason);
     }
-    expect(state.matchWinner).not.toBeNull();
-    expect(state.phase).toBe(PHASES.MATCH_END);
-    expect(Math.max(...state.scores)).toBeGreaterThanOrEqual(100);
   }, 20000);
 });

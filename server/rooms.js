@@ -75,7 +75,6 @@ export function removePlayerFromState(state, idx) {
   const boneyard = shuffle([...state.boneyard, ...returned]);
   const hands = state.hands.filter((_, i) => i !== idx);
   const playerNames = state.playerNames.filter((_, i) => i !== idx);
-  const scores = state.scores.filter((_, i) => i !== idx);
   const numPlayers = state.numPlayers - 1;
 
   const remap = (p) => (p > idx ? p - 1 : p);
@@ -94,14 +93,12 @@ export function removePlayerFromState(state, idx) {
     ...state,
     hands,
     playerNames,
-    scores,
     numPlayers,
     boneyard,
     currentPlayer,
     passStreak: 0,
     log,
-    roundResult: state.roundResult,
-    matchWinner: state.matchWinner === null ? null : remap(state.matchWinner),
+    result: state.result,
   };
 }
 
@@ -111,19 +108,16 @@ export function filterStateFor(room, idx) {
   if (!s) return null;
   return {
     phase: s.phase,
-    round: s.round,
+    seed: s.seed,
     numPlayers: s.numPlayers,
     playerNames: s.playerNames,
-    targetScore: s.targetScore,
-    scores: s.scores,
     board: s.board,
     currentPlayer: s.currentPlayer,
     boneyardCount: s.boneyard.length,
     handCounts: s.hands.map((h) => h.length),
     myHand: s.hands[idx] ?? [],
     myIndex: idx,
-    roundResult: s.roundResult,
-    matchWinner: s.matchWinner,
+    result: s.result,
     events: (s.events ?? []).map((e) =>
       e.type === 'drew' && e.player !== idx ? { ...e, tile: null } : e
     ),

@@ -1,8 +1,7 @@
-// Placar acumulado da partida (até a meta) + rodada + monte.
-export default function Scoreboard({ players, scores, targetScore, round, boneyardCount, currentPlayer, phase, myIndex }) {
+// Jogadores com quantas peças cada um tem na mão, de quem é a vez e o monte.
+export default function GameInfo({ players, boneyardCount, currentPlayer, phase, myIndex }) {
   return (
     <aside className="scoreboard">
-      <h2>Placar <small>(até {targetScore})</small></h2>
       <ul>
         {players.map((p, i) => (
           <li key={i} className={phase === 'playing' && currentPlayer === i ? 'turn' : ''}>
@@ -10,12 +9,13 @@ export default function Scoreboard({ players, scores, targetScore, round, boneya
               {p.name}
               {i === myIndex ? ' (você)' : ''}
             </span>
-            <span className="score-value">{scores[i]}</span>
+            <span className="score-value">
+              {p.tileCount} {p.tileCount === 1 ? 'peça' : 'peças'}
+            </span>
           </li>
         ))}
       </ul>
       <div className="scoreboard-meta">
-        <span>Rodada {round}</span>
         <span>Monte: {boneyardCount}</span>
       </div>
     </aside>

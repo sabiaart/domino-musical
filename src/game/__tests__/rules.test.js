@@ -6,25 +6,23 @@ import { makeTile } from '../tiles.js';
 const T = makeTile;
 
 describe('findStartingPlayer', () => {
-  it('maior carroça começa', () => {
+  it('a carroça mais grave começa: Dó-Dó antes de Ré-Ré, e assim por diante', () => {
     const hands = [
       [T(3, 3), T(1, 2)],
       [T(5, 5), T(0, 1)],
-      [T(4, 4), T(6, 5)],
+      [T(1, 1), T(6, 5)],
     ];
     const start = findStartingPlayer(hands);
-    expect(start.player).toBe(1);
-    expect(start.tile.id).toBe('5-5');
+    expect(start.player).toBe(2);
+    expect(start.tile.id).toBe('1-1');
   });
 
-  it('sem carroças: peça de maior soma começa', () => {
+  it('sem carroças: ninguém começa ainda', () => {
     const hands = [
       [T(1, 2), T(3, 4)],
       [T(5, 6), T(0, 2)],
     ];
-    const start = findStartingPlayer(hands);
-    expect(start.player).toBe(1);
-    expect(start.tile.id).toBe('5-6');
+    expect(findStartingPlayer(hands)).toBeNull();
   });
 });
 

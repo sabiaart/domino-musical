@@ -6,18 +6,32 @@ cor, e nota encaixa com nota igual.
 
 A cadeia anda pela mesa em quatro direções: segue reto ou **vira para cima ou
 para baixo**, e fica sempre centralizada na área de jogo. As ligações seguem a
-regra do dominó — sempre pela ponta: a carroça entra atravessada e a peça que
-vira fica em pé, encostando pela metade que conecta. O sorteio é fixo por
-rodada, então a mesma mesa desenha sempre igual e as peças não pulam de lugar.
+regra do dominó — sempre pela ponta: a carroça entra atravessada e liga
+sempre pelo meio (a cadeia nunca vira nela), e a peça que vira fica em pé,
+encostando pela metade que conecta. A primeira peça fica no centro da mesa e
+a cadeia cresce pelas pontas: uma peça, depois de posta, nunca mais muda de
+lugar nem de forma.
 
 O tabuleiro soa: ao entrar na mesa, a peça **toca as suas notas** — primeiro a
 que encaixou na ponta, depois a que ficou de fora como nova ponta, com um
 segundo entre elas (a carroça toca a mesma nota duas vezes). **Passar o mouse**
 sobre metade de uma peça toca aquela nota, então dá para "tocar" a cadeia
 correndo o mouse por ela. Sobre cada peça da mesa aparecem também os botões
-**◀ ▶**, que tocam a cadeia dali até a ponta inicial ou final, nota por nota,
-com 2 segundos entre elas. As notas soam entre o Fá 2 e o Mi 4, numa oitava
-sorteada a cada vez. O botão 🔊 silencia tudo.
+**setas**, que tocam a cadeia dali até uma das pontas — cada seta aponta
+para a peça vizinha naquele sentido —, nota por nota, com o tempo entre elas
+escolhido na barra **Velocidade** (de 0,1 s a 3 s; padrão 2 s, e dá para
+mexer com a cadeia tocando). As notas soam entre o Fá 2 e o Mi 4, e o seletor
+**Intervalos** (que pode ser trocado durante a partida) decide o salto entre
+uma nota e a seguinte, subindo ou descendo:
+
+- **1ª–4ª** — uníssono, segundas, terças e quartas;
+- **5ª–8ª** — quintas, sextas, sétimas e oitavas;
+- **Misto** — qualquer um dos dois grupos.
+
+A prioridade é o intervalo **entre as duas notas da mesma peça**, que sempre
+segue o modo. Entre uma peça e a seguinte o modo também vale quando dá; perto
+das bordas da extensão, a peça muda de oitava em relação à anterior para
+manter o próprio intervalo. O botão 🔊 silencia tudo.
 
 Modos de jogo:
 
@@ -83,20 +97,24 @@ npm test
 ## Regras implementadas
 
 - 28 peças (Dó-Dó a Si-Si); cada jogador começa com **7 peças**; o resto vai para o monte.
-- Cada nota vale pontos na contagem: **Dó=0, Ré=1, Mi=2, Fá=3, Sol=4, Lá=5, Si=6**
-  (a mesma escala do dominó tradicional, 0 a 6).
-- Começa quem tiver a **maior carroça** (dupla); sem carroças, a peça de maior soma.
-  A peça inicial é jogada automaticamente.
+- Começa quem tiver a **carroça mais grave**, na ordem Dó-Dó, Ré-Ré, Mi-Mi…
+  Si-Si, jogando essa peça (automaticamente). Se ninguém tiver carroça, os
+  jogadores compram do monte, um de cada vez, até aparecer uma.
 - Joga-se encaixando peças nas **duas pontas** da mesa — Dó com Dó, Ré com Ré, etc.
 - Para jogar uma peça destacada: **arraste-a** até a zona de encaixe que aparece
   na ponta da mesa, ou dê **dois cliques** para ela ir sozinha (se encaixar nas
   duas pontas, o jogo pergunta qual).
+- Peça de notas diferentes que cabe nas duas posições: o jogo pergunta se ela
+  entra **na horizontal** (seguindo reto) ou **na vertical** (virando a cadeia).
+  Só aparecem as posições possíveis — logo depois de uma carroça, por exemplo,
+  a peça só pode seguir reto. Carroça não tem escolha: fica sempre atravessada.
 - Sem jogada possível: **compra** do monte até conseguir; monte vazio: **passa** a vez.
-- A rodada termina quando alguém **bate** (fica sem peças) ou quando o jogo
-  **fecha** (ninguém consegue jogar e o monte acabou) — nesse caso vence a menor
-  mão; empate na menor mão: ninguém pontua.
-- O vencedor da rodada soma os **pontos das mãos dos perdedores**.
-- A partida vai até **100 pontos**.
+- O jogo termina quando alguém **bate** (fica sem peças) e vence, ou quando
+  **fecha** (ninguém consegue jogar e o monte acabou) — nesse caso vence quem
+  tiver menos peças na mão; empate: ninguém vence.
+- Cada partida é **um jogo isolado**: não há pontos nem rodadas. No fim, a mesa
+  continua na tela para tocar a cadeia quantas vezes quiser, e **Novo jogo**
+  começa outra partida.
 
 ## Multiplayer — detalhes
 
@@ -111,7 +129,7 @@ npm test
 
 ```
 src/game/       lógica pura e testável (peças, mesa, regras, pontuação, motor, IA)
-src/components/ interface React (mesa, mão, placar, lobby…)
+src/components/ interface React (mesa, mão, jogadores, lobby…)
 src/ui/         layout da cadeia na mesa e som das notas
 src/hooks/      integração UI ↔ motor (single-player) e UI ↔ socket (multiplayer)
 server/         servidor Socket.io autoritativo com salas em memória

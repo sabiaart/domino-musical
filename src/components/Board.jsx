@@ -7,8 +7,15 @@ import {
   zoneRect,
   oposta,
   unidadeParaLargura,
+  setaParaVizinha,
 } from '../ui/layoutChain.js';
-import { playTileNotes, playChain, stopChain } from '../ui/sound.js';
+import {
+  playTileNotes,
+  playChainNote,
+  planTile,
+  resetMelody,
+  getChainGap,
+} from '../ui/sound.js';
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
@@ -33,7 +40,13 @@ function endZones(layout, offsetX, offsetY, larguraVisivel) {
 // Mesa: a cadeia anda em quatro direções (segue reto ou vira para cima/baixo
 // por sorteio) e fica centralizada na área visível. As posições são absolutas
 // e animadas por transição CSS.
-export default function Board({ board, seed = 0, dropSides = null, hoveredSide = null }) {
+export default function Board({
+  board,
+  seed = 0,
+  dropSides = null,
+  hoveredSide = null,
+  onAreaChange,
+}) {
   const areaRef = useRef(null);
   const [area, setArea] = useState({ largura: 0, altura: 0 });
 
@@ -49,6 +62,10 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    onAreaChange?.(area);
+  }, [area, onAreaChange]);
+
   // Toca as notas da peça recém-colocada (uma por vez; entradas em lote,
   // como reconexão no multiplayer, ficam mudas).
   const prevIdsRef = useRef(null);
@@ -57,7 +74,7 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
     const ids = new Set(board.map((p) => p.tile.id));
     prevIdsRef.current = ids;
 
-    // Início de rodada: a mesa recomeça com a peça inicial, que também soa.
+    // Início de jogo: a mesa recomeça com a peça inicial, que também soa.
     if (board.length === 1 && (prev === null || prev.size !== 1)) {
       playTileNotes(board[0].left, board[0].right);
       return;
@@ -68,17 +85,52 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
     playTileNotes(...placedNoteOrder(board, novas[0]));
   }, [board]);
 
-  // Botões ◀ ▶ numa peça: tocam dela até a ponta inicial ou final da cadeia,
-  // nota por nota, destacando a peça que está soando.
+  // Botões de seta numa peça: tocam dela até uma das pontas da cadeia, nota
+  // por nota, destacando a peça que está soando. Cada seta aponta para a peça
+  // vizinha naquele sentido, como ela aparece na tela.
+  // A sequência anda uma nota por vez num timer, então pausar é só segurar o
+  // timer e lembrar onde parou.
   const [tocando, setTocando] = useState(null); // id da peça soando
-  const timersRef = useRef([]);
+  const [player, setPlayer] = useState(null); // null | 'tocando' | 'pausado'
+  const seqRef = useRef(null); // { notas, donos, idx, timer }
+
   const pararCadeia = () => {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
-    stopChain();
+    if (seqRef.current) clearTimeout(seqRef.current.timer);
+    seqRef.current = null;
     setTocando(null);
+    setPlayer(null);
   };
   useEffect(() => pararCadeia, []);
+
+  const passo = () => {
+    const seq = seqRef.current;
+    if (!seq) return;
+    if (seq.idx >= seq.notas.length) {
+      pararCadeia();
+      return;
+    }
+    // As notas vêm em pares, uma peça por vez: na primeira de cada peça,
+    // escolhe as alturas das duas juntas (o modo de intervalos pode ter
+    // mudado desde a peça anterior).
+    if (seq.idx % 2 === 0) seq.plano = planTile(seq.notas[seq.idx], seq.notas[seq.idx + 1]);
+    playChainNote(seq.notas[seq.idx], seq.plano[seq.idx % 2]);
+    setTocando(seq.donos[seq.idx]);
+    seq.idx += 1;
+    seq.timer = setTimeout(passo, getChainGap() * 1000);
+  };
+
+  const pausar = () => {
+    const seq = seqRef.current;
+    if (!seq) return;
+    clearTimeout(seq.timer);
+    setPlayer('pausado');
+  };
+
+  const continuar = () => {
+    if (!seqRef.current) return;
+    setPlayer('tocando');
+    passo();
+  };
 
   const tocarDesde = (inicio, sentido) => {
     pararCadeia();
@@ -92,12 +144,10 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
         donos.push(p.tile.id);
       });
     });
-    const passoMs = playChain(notas);
-    if (!passoMs) return;
-    donos.forEach((id, i) => {
-      timersRef.current.push(setTimeout(() => setTocando(id), i * passoMs));
-    });
-    timersRef.current.push(setTimeout(() => setTocando(null), donos.length * passoMs));
+    seqRef.current = { notas, donos, idx: 0, timer: null };
+    resetMelody();
+    setPlayer('tocando');
+    passo();
   };
 
   const pronto = area.largura > 0;
@@ -109,64 +159,80 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
   const zones = pronto && dropSides ? endZones(layout, offsetX, offsetY, area.largura) : null;
 
   return (
-    <div className="board-scroll" ref={areaRef}>
-      <div className="board" style={{ height: `${Math.max(height, unit * 2.4)}px` }}>
-        {board.length === 0 && <p className="board-empty">A mesa está vazia</p>}
-        {layout.cells.map((cell) => (
-          <div
-            key={cell.id}
-            className={`board-cell ${tocando === cell.id ? 'playing' : ''}`}
-            style={{ transform: `translate(${cell.x + offsetX}px, ${cell.y + offsetY}px)` }}
-          >
-            <Tile
-              a={cell.flipped ? cell.right : cell.left}
-              b={cell.flipped ? cell.left : cell.right}
-              vertical={cell.vertical}
-              unit={unit}
-            />
+    <div className="board-area">
+      {player && (
+        <div className="chain-transport" role="group" aria-label="Reprodução da cadeia">
+          {player === 'tocando' ? (
+            <button type="button" onClick={pausar} aria-label="Pausar" title="Pausar">
+              ⏸
+            </button>
+          ) : (
+            <button type="button" onClick={continuar} aria-label="Continuar" title="Continuar">
+              ▶
+            </button>
+          )}
+          <button type="button" onClick={pararCadeia} aria-label="Parar" title="Parar">
+            ⏹
+          </button>
+        </div>
+      )}
+      <div className="board-scroll" ref={areaRef}>
+        <div className="board" style={{ height: `${Math.max(height, unit * 2.4)}px` }}>
+          {board.length === 0 && <p className="board-empty">A mesa está vazia</p>}
+          {layout.cells.map((cell, i) => (
             <div
-              className="chain-play"
-              style={{ '--play-size': `${Math.round(Math.min(24, unit * 1.1))}px` }}
+              key={cell.id}
+              className={`board-cell ${tocando === cell.id ? 'playing' : ''}`}
+              style={{ transform: `translate(${cell.x + offsetX}px, ${cell.y + offsetY}px)` }}
             >
-              {[
-                ['inicio', '◀', 'Tocar daqui até a ponta inicial'],
-                ['fim', '▶', 'Tocar daqui até a ponta final'],
-              ].map(([sentido, icone, rotulo]) => (
-                <button
-                  key={sentido}
-                  type="button"
-                  aria-label={rotulo}
-                  title={rotulo}
-                  onClick={() =>
-                    tocarDesde(
-                      board.findIndex((p) => p.tile.id === cell.id),
-                      sentido
-                    )
-                  }
-                >
-                  {icone}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-        {zones &&
-          ['left', 'right']
-            .filter((side) => dropSides.includes(side))
-            .map((side) => (
+              <Tile
+                a={cell.flipped ? cell.right : cell.left}
+                b={cell.flipped ? cell.left : cell.right}
+                vertical={cell.vertical}
+                unit={unit}
+              />
               <div
-                key={side}
-                className={`drop-zone ${hoveredSide === side ? 'over' : ''}`}
-                data-drop-side={side}
-                style={{
-                  transform: `translate(${zones[side].x}px, ${zones[side].y}px)`,
-                  width: `${zones.size}px`,
-                  height: `${zones.size}px`,
-                }}
+                className="chain-play"
+                style={{ '--play-size': `${Math.round(Math.min(24, unit * 1.1))}px` }}
               >
-                {side === 'left' ? '◀' : '▶'}
+                {[
+                  ['inicio', setaParaVizinha(layout.rects, i, -1)],
+                  // Peça sozinha na mesa: um botão só, que toca ela mesma.
+                  ['fim', setaParaVizinha(layout.rects, i, 1) ?? (board.length === 1 ? '▶' : null)],
+                ]
+                  .filter(([, icone]) => icone)
+                  .map(([sentido, icone]) => (
+                    <button
+                      key={sentido}
+                      type="button"
+                      aria-label={`Tocar daqui até a ponta ${sentido === 'fim' ? 'final' : 'inicial'}`}
+                      title={`Tocar daqui até a ponta ${sentido === 'fim' ? 'final' : 'inicial'}`}
+                      onClick={() => tocarDesde(i, sentido)}
+                    >
+                      {icone}
+                    </button>
+                  ))}
               </div>
-            ))}
+            </div>
+          ))}
+          {zones &&
+            ['left', 'right']
+              .filter((side) => dropSides.includes(side))
+              .map((side) => (
+                <div
+                  key={side}
+                  className={`drop-zone ${hoveredSide === side ? 'over' : ''}`}
+                  data-drop-side={side}
+                  style={{
+                    transform: `translate(${zones[side].x}px, ${zones[side].y}px)`,
+                    width: `${zones.size}px`,
+                    height: `${zones.size}px`,
+                  }}
+                >
+                  {side === 'left' ? '◀' : '▶'}
+                </div>
+              ))}
+        </div>
       </div>
     </div>
   );

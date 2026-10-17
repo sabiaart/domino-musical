@@ -104,11 +104,10 @@ export function useMultiplayer(playerName) {
       createRoom: () => withAck('room:create', { name: playerName }),
       joinRoom: (code) => withAck('room:join', { code, name: playerName }),
       startGame: () => withAck('room:start'),
-      play: (tileId, side) =>
-        withAck('game:action', { action: { type: 'PLAY_TILE', tileId, side } }),
+      play: (tileId, side, orient) =>
+        withAck('game:action', { action: { type: 'PLAY_TILE', tileId, side, orient } }),
       draw: () => withAck('game:action', { action: { type: 'DRAW_TILE' } }),
       pass: () => withAck('game:action', { action: { type: 'PASS' } }),
-      nextRound: () => withAck('game:next-round'),
       newMatch: () => withAck('room:new-match'),
       leave: () => {
         getSocket().emit('room:leave');
@@ -144,9 +143,7 @@ export function useMultiplayer(playerName) {
         tileCount: game.handCounts[i],
         connected: room?.players?.[i]?.connected ?? true,
       })),
-      scores: game.scores,
-      targetScore: game.targetScore,
-      round: game.round,
+      seed: game.seed,
       board: game.board,
       ends,
       myHand: game.myHand,
@@ -154,8 +151,7 @@ export function useMultiplayer(playerName) {
       boneyardCount: game.boneyardCount,
       currentPlayer: game.currentPlayer,
       phase: game.phase,
-      roundResult: game.roundResult,
-      matchWinner: game.matchWinner,
+      result: game.result,
       canDraw: !hasPlayable && game.boneyardCount > 0,
       canPass: !hasPlayable && game.boneyardCount === 0,
       paused: waiting ? { name: waiting.name, deadline: waiting.deadline } : null,

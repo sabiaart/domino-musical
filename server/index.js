@@ -148,7 +148,7 @@ io.on('connection', (socket) => {
       return ack?.({ ok: false, error: 'São necessários pelo menos 2 jogadores' });
     }
     room.status = 'playing';
-    room.state = reduce(createMatch(room.players.map((p) => p.name)), { type: 'START_ROUND' });
+    room.state = reduce(createMatch(room.players.map((p) => p.name)), { type: 'START_GAME' });
     broadcastRoom(room);
     broadcastState(room);
     ack?.({ ok: true });
@@ -173,31 +173,13 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('game:next-round', (_payload, ack) => {
-    const room = getRoom(socket.data.code);
-    if (!room || !room.state) return ack?.({ ok: false, error: 'Sala não encontrada' });
-    if (socket.data.playerId !== room.hostId) {
-      return ack?.({ ok: false, error: 'Só o anfitrião pode iniciar a rodada' });
-    }
-    if (room.state.phase !== PHASES.ROUND_END) {
-      return ack?.({ ok: false, error: 'A rodada ainda não terminou' });
-    }
-    try {
-      room.state = reduce(room.state, { type: 'START_ROUND' });
-      broadcastState(room);
-      ack?.({ ok: true });
-    } catch (err) {
-      ack?.({ ok: false, error: err.message });
-    }
-  });
-
   socket.on('room:new-match', (_payload, ack) => {
     const room = getRoom(socket.data.code);
     if (!room) return ack?.({ ok: false, error: 'Sala não encontrada' });
     if (socket.data.playerId !== room.hostId) {
       return ack?.({ ok: false, error: 'Só o anfitrião pode reiniciar' });
     }
-    room.state = reduce(createMatch(room.players.map((p) => p.name)), { type: 'START_ROUND' });
+    room.state = reduce(createMatch(room.players.map((p) => p.name)), { type: 'START_GAME' });
     room.status = 'playing';
     broadcastRoom(room);
     broadcastState(room);

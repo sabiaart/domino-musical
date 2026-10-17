@@ -9,7 +9,7 @@ const T = makeTile;
 
 function playingState({ hands, board, boneyard = [], currentPlayer = 0, log = [] }) {
   const base = createMatch(hands.map((_, i) => `J${i + 1}`));
-  return { ...base, phase: PHASES.PLAYING, round: 1, hands, board, boneyard, currentPlayer, log };
+  return { ...base, phase: PHASES.PLAYING, hands, board, boneyard, currentPlayer, log };
 }
 
 describe('chooseAiAction', () => {

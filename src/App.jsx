@@ -15,7 +15,6 @@ function SinglePlayer({ playerName, onExit }) {
       onPlay={actions.play}
       onDraw={actions.draw}
       onPass={actions.pass}
-      onNextRound={actions.nextRound}
       onNewMatch={actions.newMatch}
       onExit={onExit}
     />
@@ -74,7 +73,6 @@ function Multiplayer({ playerName, onExit }) {
         onPlay={actions.play}
         onDraw={actions.draw}
         onPass={actions.pass}
-        onNextRound={isHost ? actions.nextRound : undefined}
         onNewMatch={isHost ? actions.newMatch : undefined}
         onExit={() => {
           actions.leave();
