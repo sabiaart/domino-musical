@@ -1038,10 +1038,10 @@ input[type='text']:focus {
     column-gap: 6px;
     /* Deitado, a barra de navegação e a câmera do celular ficam nas LATERAIS
        (e nem todo celular informa isso ao navegador): folga larga dos dois
-       lados, que vale mesmo sem a margem segura informada. Em cima e embaixo,
-       só a margem segura. */
-    padding: max(4px, env(safe-area-inset-top)) max(48px, env(safe-area-inset-right))
-      max(4px, env(safe-area-inset-bottom)) max(48px, env(safe-area-inset-left));
+       lados, que vale mesmo sem a margem segura informada. Embaixo, nenhuma:
+       a margem que o celular informa ali (barra de gestos) só roubava altura. */
+    padding: max(4px, env(safe-area-inset-top)) max(48px, env(safe-area-inset-right)) 0
+      max(48px, env(safe-area-inset-left));
   }
 
   /* O rodapé se desfaz: mão, resultado e controles viram itens da grade. */
