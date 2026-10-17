@@ -12,9 +12,12 @@ rodada, então a mesma mesa desenha sempre igual e as peças não pulam de lugar
 
 O tabuleiro soa: ao entrar na mesa, a peça **toca as suas notas** — primeiro a
 que encaixou na ponta, depois a que ficou de fora como nova ponta, com um
-segundo entre elas (carroça toca uma vez só). **Passar o mouse** sobre metade
-de uma peça toca aquela nota, então dá para "tocar" a cadeia correndo o mouse
-por ela. O botão 🔊 silencia tudo.
+segundo entre elas (a carroça toca a mesma nota duas vezes). **Passar o mouse**
+sobre metade de uma peça toca aquela nota, então dá para "tocar" a cadeia
+correndo o mouse por ela. Sobre cada peça da mesa aparecem também os botões
+**◀ ▶**, que tocam a cadeia dali até a ponta inicial ou final, nota por nota,
+com 2 segundos entre elas. As notas soam entre o Fá 2 e o Mi 4, numa oitava
+sorteada a cada vez. O botão 🔊 silencia tudo.
 
 Modos de jogo:
 

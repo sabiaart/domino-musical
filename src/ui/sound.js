@@ -1,7 +1,7 @@
 // Sons das notas via WebAudio.
 // O AudioContext é criado sob demanda (após o primeiro gesto do usuário).
 
-import { NOTE_FREQS } from '../game/notes.js';
+import { randomNoteFreq } from '../game/notes.js';
 
 const MUTE_KEY = 'domino.muted';
 
@@ -56,7 +56,7 @@ export function playNotes(
   const start = audio.currentTime + (recemCriado ? WARMUP_LEAD_S : NORMAL_LEAD_S);
   const oscs = [];
   values.forEach((value, i) => {
-    const freq = NOTE_FREQS[value];
+    const freq = randomNoteFreq(value);
     if (!freq) return;
     const osc = audio.createOscillator();
     const gain = audio.createGain();
@@ -74,18 +74,17 @@ export function playNotes(
   return oscs;
 }
 
-// Notas de uma peça na ordem em que devem soar; carroça toca uma vez só
-// (as duas metades são a mesma nota).
+// Notas de uma peça na ordem em que devem soar (carroça soa duas vezes).
 export function playTileNotes(primeira, segunda) {
-  playNotes(primeira === segunda ? [primeira] : [primeira, segunda]);
+  playNotes([primeira, segunda]);
 }
 
 // --- Tocar a cadeia ------------------------------------------------------
 
-// Toca a mesa a partir de uma peça até a ponta direita, peça por peça.
+// Toca a mesa a partir de uma peça até uma das pontas, peça por peça.
 // Uma nova execução (ou stopChain) corta a anterior.
-const CHAIN_GAP_S = 0.45;
-const CHAIN_DURATION_S = 0.4;
+const CHAIN_GAP_S = 2.0;
+const CHAIN_DURATION_S = 1.2;
 
 let chainOscs = [];
 

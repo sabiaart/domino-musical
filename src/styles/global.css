@@ -564,29 +564,35 @@ input[type='text']:focus {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: var(--play-size, 28px);
-  height: var(--play-size, 28px);
-  padding: 0 0 0 2px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  font-size: calc(var(--play-size, 28px) * 0.45);
-  line-height: var(--play-size, 28px);
-  cursor: pointer;
+  display: flex;
+  gap: 2px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease, background 0.15s ease;
+  transition: opacity 0.15s ease;
   z-index: 2;
 }
 
 .board-cell:hover .chain-play,
-.board-cell .chain-play:focus-visible {
+.board-cell .chain-play:focus-within {
   opacity: 1;
   pointer-events: auto;
 }
 
-.board-cell .chain-play:hover {
+.board-cell .chain-play button {
+  width: var(--play-size, 24px);
+  height: var(--play-size, 24px);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: calc(var(--play-size, 24px) * 0.45);
+  line-height: var(--play-size, 24px);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.board-cell .chain-play button:hover {
   background: var(--accent);
   color: var(--ink);
 }

@@ -68,8 +68,8 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
     playTileNotes(...placedNoteOrder(board, novas[0]));
   }, [board]);
 
-  // Botão ▶ numa peça: toca dela até a ponta direita da mesa, na ordem da
-  // cadeia, destacando a peça que está soando.
+  // Botões ◀ ▶ numa peça: tocam dela até a ponta inicial ou final da cadeia,
+  // nota por nota, destacando a peça que está soando.
   const [tocando, setTocando] = useState(null); // id da peça soando
   const timersRef = useRef([]);
   const pararCadeia = () => {
@@ -80,12 +80,13 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
   };
   useEffect(() => pararCadeia, []);
 
-  const tocarDesde = (inicio) => {
+  const tocarDesde = (inicio, sentido) => {
     pararCadeia();
     const notas = [];
     const donos = [];
-    board.slice(inicio).forEach((p) => {
-      const nsPeca = p.left === p.right ? [p.left] : [p.left, p.right];
+    const pecas = sentido === 'fim' ? board.slice(inicio) : board.slice(0, inicio + 1).reverse();
+    pecas.forEach((p) => {
+      const nsPeca = sentido === 'fim' ? [p.left, p.right] : [p.right, p.left];
       nsPeca.forEach((n) => {
         notas.push(n);
         donos.push(p.tile.id);
@@ -123,16 +124,30 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
               vertical={cell.vertical}
               unit={unit}
             />
-            <button
-              type="button"
+            <div
               className="chain-play"
-              style={{ '--play-size': `${Math.round(Math.min(28, unit * 1.1))}px` }}
-              aria-label="Tocar daqui até o fim"
-              title="Tocar daqui até o fim"
-              onClick={() => tocarDesde(board.findIndex((p) => p.tile.id === cell.id))}
+              style={{ '--play-size': `${Math.round(Math.min(24, unit * 1.1))}px` }}
             >
-              ▶
-            </button>
+              {[
+                ['inicio', '◀', 'Tocar daqui até a ponta inicial'],
+                ['fim', '▶', 'Tocar daqui até a ponta final'],
+              ].map(([sentido, icone, rotulo]) => (
+                <button
+                  key={sentido}
+                  type="button"
+                  aria-label={rotulo}
+                  title={rotulo}
+                  onClick={() =>
+                    tocarDesde(
+                      board.findIndex((p) => p.tile.id === cell.id),
+                      sentido
+                    )
+                  }
+                >
+                  {icone}
+                </button>
+              ))}
+            </div>
           </div>
         ))}
         {zones &&
