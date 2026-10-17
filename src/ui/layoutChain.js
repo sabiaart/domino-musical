@@ -39,11 +39,13 @@ const PERPENDICULARES = {
 
 const ehHorizontal = (d) => d === 'right' || d === 'left';
 
-// Tamanho da peça conforme o espaço: menor no celular. Fica aqui para a UI e
-// os testes nunca usarem combinações de largura/unidade que não existem.
+// Tamanho da peça conforme o espaço: menor no celular. Mesa pequena com peça
+// grande vive encurralada — a cadeia quebra de linha e quase nunca sobra
+// escolha de posição —, então até 760 px a peça fica bem menor. Fica aqui
+// para a UI e os testes nunca usarem combinações que não existem.
 export function unidadeParaLargura(largura) {
-  if (largura <= 0 || largura >= 520) return 32;
-  return largura < 420 ? 20 : 24;
+  if (largura <= 0 || largura >= 760) return 32;
+  return largura < 420 ? 18 : 22;
 }
 
 function hash32(texto, semente = 0) {
@@ -282,18 +284,18 @@ export function layoutChain(board, containerWidth, unit, semente = 0, alturaDisp
 
   // Cabe uma sequência de peças seguindo reto a partir de `saida` (carroças
   // atravessadas onde indicado), e ainda sobra para onde ir depois?
-  const retoLivre = (saida, dir, sequencia, juntos) => {
+  const retoLivre = (saida, dir, sequencia, juntos, checarAltura = false) => {
     let ponto = saida;
     const postos = [...juntos];
     for (const ehCarroca of sequencia) {
       const p = colocar(ponto, dir, dir, ehCarroca, m);
-      if (!cabeNoQuadro(p.rect, quadro, false) || colide(p.rect, postos)) {
+      if (!cabeNoQuadro(p.rect, quadro, checarAltura) || colide(p.rect, postos)) {
         return false;
       }
       postos.push(p.rect);
       ponto = p.novaSaida;
     }
-    return espacoAFrente(ponto, dir, postos, quadro, m, 1, false) >= 1;
+    return espacoAFrente(ponto, dir, postos, quadro, m, 1, checarAltura) >= 1;
   };
 
   const cells = new Array(board.length);
@@ -328,6 +330,9 @@ export function layoutChain(board, containerWidth, unit, semente = 0, alturaDisp
         : escolha.dir === 'left' || escolha.dir === 'up',
       left: placed.left,
       right: placed.right,
+      // Posição escolhida que só coube no aperto (sem folga adiante): a
+      // interface não a oferece, para o jogador não encurralar a ponta.
+      apertada: Boolean(escolha.apertada),
     };
     ocupados.push(escolha.rect);
     bb.minX = Math.min(bb.minX, escolha.rect.x);
@@ -382,6 +387,11 @@ export function layoutChain(board, containerWidth, unit, semente = 0, alturaDisp
 
     const daEsquerda = idx < ancora;
     const ponta = daEsquerda ? pontas.left : pontas.right;
+    // O espaço que a OUTRA ponta já reservou (a peça que ela é obrigada a pôr
+    // reto depois de uma carroça) conta como ocupado: senão esta ponta o
+    // invade e aquela fica sem saída.
+    const outra = daEsquerda ? pontas.right : pontas.left;
+    const bloqueados = outra.reserva ? [...ocupados, ...outra.reserva] : ocupados;
     const h32 = hash32(placed.tile.id, semente);
     const dirAtual = ponta.dir;
     let perp;
@@ -428,58 +438,75 @@ export function layoutChain(board, containerWidth, unit, semente = 0, alturaDisp
     let escolha = null;
     // Primeiro exige reservar espaço reto para uma possível carroça a seguir;
     // só se nada couber assim é que abre mão dessa reserva.
-    for (const grupo of grupos ?? [candidatas]) {
+    // Busca da mais folgada para a mais apertada: para cada nível de reserva,
+    // primeiro a posição escolhida pelo jogador e depois a outra. Assim a
+    // escolha só vale quando é tão segura quanto a alternativa — o que evita
+    // encurralar a ponta (e a interface só oferece posições que valem).
+    const ordemGrupos = grupos ?? [candidatas];
+    let apertada = false;
+    // As duas reservas mais longas contam como um degrau só: dentro dele a
+    // posição escolhida tenta as duas antes da alternativa. Sem isso, virar
+    // (que quase sempre tem mais espaço) ganharia sempre e o jogador quase
+    // nunca teria escolha.
+    for (const degrau of [RESERVAS.slice(0, 2), ...RESERVAS.slice(2).map((r) => [r])]) {
       if (escolha) break;
-      for (const reserva of RESERVAS) {
+      for (const grupo of ordemGrupos) {
         if (escolha) break;
-        for (const nivel of NIVEIS) {
-          for (const cand of grupo) {
-            const posto = colocar(ponta.saida, dirAtual, cand, carroca, m);
-            if (!cabeNoQuadro(posto.rect, quadro, nivel.respeitarAltura)) continue;
-            if (colide(posto.rect, ocupados)) continue;
-            const juntos = [...ocupados, posto.rect];
-            // Uma carroça obriga a peça seguinte a seguir reto; e a próxima peça
-            // pode ser uma carroça (ainda não se sabe qual vem), que também não
-            // vira. Então reserva-se espaço reto adiante — com saída no fim —
-            // para o pior caso. Sem isso, a cadeia travaria encostada na borda.
-            // No primeiro passe a reserva é obrigatória; só se nada couber assim
-            // é que se abre mão dela (exceto o mínimo que a carroça exige).
-            if (posto.saidaLarga) {
-              if (!retoLivre(posto.novaSaida, cand, [false], juntos)) continue;
-            } else if (!carroca && reserva.length > 0) {
-              if (!retoLivre(posto.novaSaida, cand, reserva, juntos)) continue;
-            }
-            if (nivel.folga > 0) {
-              const espaco = espacoAFrente(
-                posto.novaSaida,
-                cand,
-                juntos,
-                quadro,
-                m,
-                nivel.folga,
-                nivel.respeitarAltura,
-              );
-              if (espaco < nivel.folga) continue;
-              if (nivel.checarArea) {
-                // Cada peça ocupa 2 células. Não se sabe quantas ainda virão, nem
-                // por qual ponta: exige área para metade das que restam no jogo.
-                const faltam = Math.ceil((TOTAL_PECAS - ocupados.length - 1) / 2);
-                const precisa = faltam * 2;
-                const janela = nivel.respeitarAltura
-                  ? quadro
-                  : { ...quadro, minY: -Infinity, maxY: Infinity };
-                if (
-                  faltam > 0 &&
-                  celulasAlcancaveis(posto.novaSaida, cand, juntos, janela, m, precisa) < precisa
-                ) {
+        for (const reserva of degrau) {
+          if (escolha) break;
+          for (const nivel of NIVEIS) {
+            if (escolha) break;
+            apertada = reserva.length === 0 || nivel.folga === 0;
+            for (const cand of grupo) {
+              const posto = colocar(ponta.saida, dirAtual, cand, carroca, m);
+              if (!cabeNoQuadro(posto.rect, quadro, nivel.respeitarAltura)) continue;
+              if (colide(posto.rect, bloqueados)) continue;
+              const juntos = [...bloqueados, posto.rect];
+              // Uma carroça obriga a peça seguinte a seguir reto; e a próxima peça
+              // pode ser uma carroça (ainda não se sabe qual vem), que também não
+              // vira. Então reserva-se espaço reto adiante — com saída no fim —
+              // para o pior caso. Sem isso, a cadeia travaria encostada na borda.
+              // No primeiro passe a reserva é obrigatória; só se nada couber assim
+              // é que se abre mão dela (exceto o mínimo que a carroça exige).
+              if (posto.saidaLarga) {
+                if (!retoLivre(posto.novaSaida, cand, [false], juntos)) continue;
+              } else if (!carroca && reserva.length > 0) {
+                if (!retoLivre(posto.novaSaida, cand, reserva, juntos, nivel.respeitarAltura)) {
                   continue;
                 }
               }
+              if (nivel.folga > 0) {
+                const espaco = espacoAFrente(
+                  posto.novaSaida,
+                  cand,
+                  juntos,
+                  quadro,
+                  m,
+                  nivel.folga,
+                  nivel.respeitarAltura,
+                );
+                if (espaco < nivel.folga) continue;
+                if (nivel.checarArea) {
+                  // Cada peça ocupa 2 células. Não se sabe quantas ainda virão, nem
+                  // por qual ponta: exige área para metade das que restam no jogo.
+                  const faltam = Math.ceil((TOTAL_PECAS - ocupados.length - 1) / 2);
+                  const precisa = faltam * 2;
+                  const janela = nivel.respeitarAltura
+                    ? quadro
+                    : { ...quadro, minY: -Infinity, maxY: Infinity };
+                  if (
+                    faltam > 0 &&
+                    celulasAlcancaveis(posto.novaSaida, cand, juntos, janela, m, precisa) < precisa
+                  ) {
+                    continue;
+                  }
+                }
+              }
+              escolha = { ...posto, dir: cand };
+              break;
             }
-            escolha = { ...posto, dir: cand };
-            break;
+            if (escolha) break;
           }
-          if (escolha) break;
         }
       }
     }
@@ -503,9 +530,24 @@ export function layoutChain(board, containerWidth, unit, semente = 0, alturaDisp
       quebras += 1;
     }
 
-    registrar(idx, escolha, daEsquerda);
+    registrar(idx, { ...escolha, apertada: apertada && !escolha.quebra }, daEsquerda);
     ponta.saida = escolha.novaSaida;
     ponta.faceLonga = escolha.saidaLarga;
+    // Depois de uma carroça a próxima peça desta ponta só pode ir reto:
+    // guarda esse lugar para a outra ponta não ocupá-lo.
+    // Uma peça comum guarda o espaço reto para uma possível carroça e a peça
+    // forçada depois dela (se ainda couber).
+    ponta.reserva = null;
+    if (escolha.saidaLarga) {
+      ponta.reserva = [colocar(escolha.novaSaida, escolha.dir, escolha.dir, false, m).rect];
+    } else if (!carroca) {
+      const dupla = colocar(escolha.novaSaida, escolha.dir, escolha.dir, true, m);
+      const forcada = colocar(dupla.novaSaida, escolha.dir, escolha.dir, false, m);
+      const livres = [dupla.rect, forcada.rect].every(
+        (r) => cabeNoQuadro(r, quadro, false) && !colide(r, ocupados),
+      );
+      if (livres) ponta.reserva = [dupla.rect, forcada.rect];
+    }
     if (ehHorizontal(escolha.dir)) {
       ponta.passosNaVertical = 0;
       ponta.ultimaHorizontal = escolha.dir;
@@ -564,7 +606,7 @@ export function orientacoesPossiveis(board, tile, side, largura, altura, semente
     }
     const idx = side === 'left' ? 0 : teste.length - 1;
     const cell = layoutChain(teste, largura, unit, semente, altura).cells[idx];
-    return cell && cell.vertical === (orient === 'vertical');
+    return cell && cell.vertical === (orient === 'vertical') && !cell.apertada;
   });
 }
 

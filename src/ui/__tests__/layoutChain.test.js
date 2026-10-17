@@ -100,8 +100,8 @@ describe('layoutChain', () => {
   });
 
   it('a unidade acompanha a largura da tela', () => {
-    expect(unidadeParaLargura(380)).toBe(20); // celular: peça menor cabe melhor
-    expect(unidadeParaLargura(460)).toBe(24);
+    expect(unidadeParaLargura(380)).toBe(18); // celular: peça menor cabe melhor
+    expect(unidadeParaLargura(460)).toBe(22);
     expect(unidadeParaLargura(900)).toBe(32);
   });
 
@@ -416,5 +416,48 @@ describe('peças já postas não mudam', () => {
     const c = centralizar(l, 900, 400);
     const primeira = l.cells.find((cell) => cell.id === l0.cells[0].id);
     expect(primeira.x + c.offsetX).toBeCloseTo(x0, 5);
+  });
+});
+
+describe('escolhas do jogador no celular', () => {
+  it('escolher a posição raramente parte a cadeia, e ainda sobra escolha', () => {
+    // Regressão: no celular, escolher horizontal/vertical encurralava a ponta
+    // e a cadeia recomeçava em outro grupo em quase metade das partidas.
+    const limites = [
+      [340, 320, 0.15],
+      [490, 330, 0.1],
+      [1100, 420, 0.02],
+    ];
+    for (const [largura, altura, maximo] of limites) {
+      const u = unidadeParaLargura(largura);
+      let quebras = 0;
+      let comEscolha = 0;
+      let pecas = 0;
+      const total = 80;
+      for (let s = 1; s <= total; s++) {
+        const monte = shuffle(createAllTiles(), seededRng(s));
+        const rng = seededRng(s + 99);
+        let board = placeTile([], monte.pop(), 'right');
+        while (board.length < 20) {
+          const ends = getEnds(board);
+          const i = monte.findIndex((t) => canPlay(t, ends));
+          if (i < 0) break;
+          const tile = monte.splice(i, 1)[0];
+          const lados = playableSides(tile, ends);
+          const lado = lados[Math.floor(rng() * lados.length)];
+          const ops =
+            tile.a === tile.b ? [] : orientacoesPossiveis(board, tile, lado, largura, altura, s);
+          if (tile.a !== tile.b) {
+            pecas++;
+            if (ops.length === 2) comEscolha++;
+          }
+          const orient = ops.length ? ops[Math.floor(rng() * ops.length)] : undefined;
+          board = placeTile(board, tile, lado, orient);
+        }
+        if (layoutChain(board, largura, u, s, altura).quebras > 0) quebras++;
+      }
+      expect(quebras / total, `${largura}px: quebras`).toBeLessThan(maximo);
+      expect(comEscolha / pecas, `${largura}px: escolha`).toBeGreaterThan(0.4);
+    }
   });
 });
