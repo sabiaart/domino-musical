@@ -11,7 +11,7 @@ const AI_INDEX = 1;
 const AI_PLAY_DELAY_MS = 4000;
 const AI_QUIET_DELAY_MS = 900;
 
-export function useSinglePlayerGame(playerName, difficulty) {
+export function useSinglePlayerGame(playerName) {
   const [state, setState] = useState(() =>
     reduce(createMatch([playerName || 'Você', 'Computador']), { type: 'START_ROUND' })
   );
@@ -32,7 +32,7 @@ export function useSinglePlayerGame(playerName, difficulty) {
     if (state.phase !== PHASES.PLAYING || state.currentPlayer !== AI_INDEX) return;
     let action;
     try {
-      action = chooseAiAction(state, AI_INDEX, difficulty);
+      action = chooseAiAction(state, AI_INDEX);
     } catch {
       return;
     }
@@ -48,7 +48,7 @@ export function useSinglePlayerGame(playerName, difficulty) {
       });
     }, delay);
     return () => clearTimeout(timer);
-  }, [state, difficulty]);
+  }, [state]);
 
   const view = useMemo(() => {
     const ends = getEnds(state.board);

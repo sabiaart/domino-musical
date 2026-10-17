@@ -8,7 +8,7 @@ import {
   oposta,
   unidadeParaLargura,
 } from '../ui/layoutChain.js';
-import { playTileNotes } from '../ui/sound.js';
+import { playTileNotes, playChain, stopChain } from '../ui/sound.js';
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
@@ -68,6 +68,37 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
     playTileNotes(...placedNoteOrder(board, novas[0]));
   }, [board]);
 
+  // Botão ▶ numa peça: toca dela até a ponta direita da mesa, na ordem da
+  // cadeia, destacando a peça que está soando.
+  const [tocando, setTocando] = useState(null); // id da peça soando
+  const timersRef = useRef([]);
+  const pararCadeia = () => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    stopChain();
+    setTocando(null);
+  };
+  useEffect(() => pararCadeia, []);
+
+  const tocarDesde = (inicio) => {
+    pararCadeia();
+    const notas = [];
+    const donos = [];
+    board.slice(inicio).forEach((p) => {
+      const nsPeca = p.left === p.right ? [p.left] : [p.left, p.right];
+      nsPeca.forEach((n) => {
+        notas.push(n);
+        donos.push(p.tile.id);
+      });
+    });
+    const passoMs = playChain(notas);
+    if (!passoMs) return;
+    donos.forEach((id, i) => {
+      timersRef.current.push(setTimeout(() => setTocando(id), i * passoMs));
+    });
+    timersRef.current.push(setTimeout(() => setTocando(null), donos.length * passoMs));
+  };
+
   const pronto = area.largura > 0;
   const unit = unidadeParaLargura(area.largura);
   const layout = pronto
@@ -83,7 +114,7 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
         {layout.cells.map((cell) => (
           <div
             key={cell.id}
-            className="board-cell"
+            className={`board-cell ${tocando === cell.id ? 'playing' : ''}`}
             style={{ transform: `translate(${cell.x + offsetX}px, ${cell.y + offsetY}px)` }}
           >
             <Tile
@@ -92,6 +123,16 @@ export default function Board({ board, seed = 0, dropSides = null, hoveredSide =
               vertical={cell.vertical}
               unit={unit}
             />
+            <button
+              type="button"
+              className="chain-play"
+              style={{ '--play-size': `${Math.round(Math.min(28, unit * 1.1))}px` }}
+              aria-label="Tocar daqui até o fim"
+              title="Tocar daqui até o fim"
+              onClick={() => tocarDesde(board.findIndex((p) => p.tile.id === cell.id))}
+            >
+              ▶
+            </button>
           </div>
         ))}
         {zones &&

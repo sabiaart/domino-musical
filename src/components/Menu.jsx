@@ -1,14 +1,7 @@
 import { useState } from 'react';
 
-const DIFFICULTIES = [
-  { id: 'easy', label: 'Fácil', hint: 'Joga qualquer peça válida' },
-  { id: 'medium', label: 'Médio', hint: 'Prioriza carroças e pontos altos' },
-  { id: 'hard', label: 'Difícil', hint: 'Conta peças e bloqueia você' },
-];
-
 export default function Menu({ initialName, onStartSingle, onGoMultiplayer }) {
   const [name, setName] = useState(initialName || '');
-  const [difficulty, setDifficulty] = useState('medium');
 
   const trimmed = name.trim();
 
@@ -34,24 +27,11 @@ export default function Menu({ initialName, onStartSingle, onGoMultiplayer }) {
 
       <section className="menu-card">
         <h2>Contra o computador</h2>
-        <div className="difficulty-row" role="radiogroup" aria-label="Dificuldade">
-          {DIFFICULTIES.map((d) => (
-            <button
-              key={d.id}
-              type="button"
-              className={`difficulty ${difficulty === d.id ? 'selected' : ''}`}
-              onClick={() => setDifficulty(d.id)}
-              title={d.hint}
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
         <button
           type="button"
           className="btn primary big"
           disabled={!trimmed}
-          onClick={() => onStartSingle(trimmed, difficulty)}
+          onClick={() => onStartSingle(trimmed)}
         >
           Jogar
         </button>

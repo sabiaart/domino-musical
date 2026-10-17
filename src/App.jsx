@@ -7,8 +7,8 @@ import { useMultiplayer } from './hooks/useMultiplayer.js';
 
 const NAME_KEY = 'domino.playerName';
 
-function SinglePlayer({ playerName, difficulty, onExit }) {
-  const { view, actions } = useSinglePlayerGame(playerName, difficulty);
+function SinglePlayer({ playerName, onExit }) {
+  const { view, actions } = useSinglePlayerGame(playerName);
   return (
     <GameScreen
       view={view}
@@ -94,7 +94,6 @@ export default function App() {
       <SinglePlayer
         key={screen.gameId}
         playerName={screen.playerName}
-        difficulty={screen.difficulty}
         onExit={goMenu}
       />
     );
@@ -107,9 +106,9 @@ export default function App() {
   return (
     <Menu
       initialName={localStorage.getItem(NAME_KEY) || ''}
-      onStartSingle={(playerName, difficulty) => {
+      onStartSingle={(playerName) => {
         localStorage.setItem(NAME_KEY, playerName);
-        setScreen({ name: 'single', playerName, difficulty, gameId: Date.now() });
+        setScreen({ name: 'single', playerName, gameId: Date.now() });
       }}
       onGoMultiplayer={(playerName) => {
         localStorage.setItem(NAME_KEY, playerName);

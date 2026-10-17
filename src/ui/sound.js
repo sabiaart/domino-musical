@@ -49,11 +49,12 @@ export function playNotes(
   values,
   { gap = PLAY_GAP_S, duration = PLAY_DURATION_S, volume = PLAY_VOLUME } = {}
 ) {
-  if (isMuted() || values.length === 0) return;
+  if (isMuted() || values.length === 0) return [];
   const audio = getContext();
-  if (!audio) return;
+  if (!audio) return [];
   const recemCriado = performance.now() - ctxCreatedAt < WARMUP_WINDOW_MS;
   const start = audio.currentTime + (recemCriado ? WARMUP_LEAD_S : NORMAL_LEAD_S);
+  const oscs = [];
   values.forEach((value, i) => {
     const freq = NOTE_FREQS[value];
     if (!freq) return;
@@ -68,13 +69,43 @@ export function playNotes(
     osc.connect(gain).connect(audio.destination);
     osc.start(t);
     osc.stop(t + duration + 0.05);
+    oscs.push(osc);
   });
+  return oscs;
 }
 
 // Notas de uma peça na ordem em que devem soar; carroça toca uma vez só
 // (as duas metades são a mesma nota).
 export function playTileNotes(primeira, segunda) {
   playNotes(primeira === segunda ? [primeira] : [primeira, segunda]);
+}
+
+// --- Tocar a cadeia ------------------------------------------------------
+
+// Toca a mesa a partir de uma peça até a ponta direita, peça por peça.
+// Uma nova execução (ou stopChain) corta a anterior.
+const CHAIN_GAP_S = 0.45;
+const CHAIN_DURATION_S = 0.4;
+
+let chainOscs = [];
+
+export function stopChain() {
+  for (const osc of chainOscs) {
+    try {
+      osc.stop();
+    } catch {
+      // já parou
+    }
+  }
+  chainOscs = [];
+}
+
+// `notes` são índices 0–6. Retorna o intervalo entre notas em ms (0 se mudo),
+// para a interface acompanhar o andamento.
+export function playChain(notes) {
+  stopChain();
+  chainOscs = playNotes(notes, { gap: CHAIN_GAP_S, duration: CHAIN_DURATION_S });
+  return chainOscs.length > 0 ? CHAIN_GAP_S * 1000 : 0;
 }
 
 // --- Prévia no hover -------------------------------------------------------

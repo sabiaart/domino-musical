@@ -18,7 +18,7 @@ por ela. O botão 🔊 silencia tudo.
 
 Modos de jogo:
 
-- **Single-player** — você contra o computador, com 3 níveis de dificuldade
+- **Single-player** — você contra o computador, que joga uma peça válida por sorteio
 - **Multiplayer online** — 2 a 4 jogadores em salas com código compartilhável (Socket.io)
 
 ## Stack
