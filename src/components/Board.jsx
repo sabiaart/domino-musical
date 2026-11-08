@@ -19,6 +19,9 @@ import {
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
+// Silêncio antes da repetição pela tecla R.
+const SILENCIO_ANTES_DA_REPETICAO_MS = 1000;
+
 // Zonas de encaixe nas duas pontas, encostadas no sentido em que cada uma
 // cresce — inclusive quando a ponta está subindo ou descendo.
 function endZones(layout, offsetX, offsetY, larguraVisivel) {
@@ -132,7 +135,12 @@ export default function Board({
     passo();
   };
 
-  const tocarDesde = (inicio, sentido) => {
+  // Guarda a peça (não a posição): jogadas na ponta inicial deslocam as posições.
+  const ultimoTrechoRef = useRef(null); // { id, sentido } do último tocado
+  // `espera`: silêncio antes da primeira nota, em ms. Ele vale como parte da
+  // sequência, então pausar ou parar durante ele funciona como numa nota.
+  const tocarDesde = (inicio, sentido, espera = 0) => {
+    ultimoTrechoRef.current = { id: board[inicio]?.tile.id, sentido };
     pararCadeia();
     const notas = [];
     const donos = [];
@@ -147,8 +155,39 @@ export default function Board({
     seqRef.current = { notas, donos, idx: 0, timer: null };
     resetMelody();
     setPlayer('tocando');
-    passo();
+    if (espera > 0) seqRef.current.timer = setTimeout(passo, espera);
+    else passo();
   };
+
+  // Teclado. Espaço: pausa ou continua a cadeia; parada, toca a mesa inteira
+  // desde a primeira ponta. R: repete do começo o último trecho tocado, depois
+  // de um silêncio. O ref guarda a versão mais recente das funções.
+  const tecladoRef = useRef(null);
+  tecladoRef.current = (tecla) => {
+    if (tecla === 'Space') {
+      if (player === 'tocando') pausar();
+      else if (player === 'pausado') continuar();
+      else if (board.length > 0) tocarDesde(0, 'fim');
+      return;
+    }
+    const trecho = ultimoTrechoRef.current;
+    const inicio = trecho ? board.findIndex((p) => p.tile.id === trecho.id) : -1;
+    if (inicio >= 0) tocarDesde(inicio, trecho.sentido, SILENCIO_ANTES_DA_REPETICAO_MS);
+  };
+  useEffect(() => {
+    const aoTeclar = (e) => {
+      if ((e.code !== 'Space' && e.code !== 'KeyR') || e.repeat) return;
+      // Ctrl+R e afins são do navegador (recarregar a página).
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // Digitando um nome ou mexendo numa lista, a tecla é do campo.
+      if (e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+      // Sem isto o espaço "clica" no último botão usado ou rola a página.
+      e.preventDefault();
+      tecladoRef.current(e.code);
+    };
+    window.addEventListener('keydown', aoTeclar);
+    return () => window.removeEventListener('keydown', aoTeclar);
+  }, []);
 
   const pronto = area.largura > 0;
   const unit = unidadeParaLargura(area.largura);

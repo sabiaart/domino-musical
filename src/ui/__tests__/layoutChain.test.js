@@ -100,9 +100,9 @@ describe('layoutChain', () => {
   });
 
   it('a unidade acompanha a largura da tela', () => {
-    expect(unidadeParaLargura(380)).toBe(18); // celular: peça menor cabe melhor
-    expect(unidadeParaLargura(460)).toBe(22);
-    expect(unidadeParaLargura(900)).toBe(32);
+    expect(unidadeParaLargura(380)).toBe(19); // celular: peça menor cabe melhor
+    expect(unidadeParaLargura(460)).toBe(23);
+    expect(unidadeParaLargura(900)).toBe(34);
   });
 
   it('a mesma mesa sempre gera o mesmo desenho', () => {

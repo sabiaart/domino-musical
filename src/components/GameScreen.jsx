@@ -10,6 +10,10 @@ import {
   setMuted,
   getIntervalMode,
   setIntervalMode,
+  getArticulation,
+  setArticulation,
+  getTimbre,
+  setTimbre,
   getChainGap,
   setChainGap,
   getVolume,
@@ -99,6 +103,16 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
   const changeIntervalMode = (mode) => {
     setIntervalMode(mode);
     setIntervalModeState(mode);
+  };
+  const [articulation, setArticulationState] = useState(getArticulation);
+  const changeArticulation = (articulacao) => {
+    setArticulation(articulacao);
+    setArticulationState(articulacao);
+  };
+  const [timbre, setTimbreState] = useState(getTimbre);
+  const changeTimbre = (novo) => {
+    setTimbre(novo);
+    setTimbreState(novo);
   };
   // Peça de notas diferentes que cabe em pé e deitada: o jogador escolhe a
   // posição antes de ela entrar na mesa.
@@ -193,6 +207,10 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
           onVolume={changeVolume}
           intervalMode={intervalMode}
           onIntervalMode={changeIntervalMode}
+          articulation={articulation}
+          onArticulation={changeArticulation}
+          timbre={timbre}
+          onTimbre={changeTimbre}
           chainGap={chainGap}
           onChainGap={changeChainGap}
           gapMin={CHAIN_GAP_MIN_S}

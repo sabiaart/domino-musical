@@ -20,7 +20,13 @@ correndo o mouse por ela. Sobre cada peça da mesa aparecem também os botões
 **setas**, que tocam a cadeia dali até uma das pontas — cada seta aponta
 para a peça vizinha naquele sentido —, nota por nota, com o tempo entre elas
 escolhido na barra **Velocidade** (de 0,1 s a 3 s; padrão 2 s, e dá para
-mexer com a cadeia tocando). As notas soam entre o Fá 2 e o Mi 4, e o seletor
+mexer com a cadeia tocando). No computador, a tecla **Espaço** pausa e continua
+a cadeia; com nada tocando, toca a mesa inteira desde a primeira ponta. A tecla **R**
+repete do começo o último trecho tocado, depois de 1 s de silêncio. O seletor **Articulação** deixa as notas longas
+e quase ligadas (Legato) ou com o som padrão (Normal).
+O seletor **Timbre** troca o instrumento: Clarinete (padrão), Trombone, Flauta de
+madeira, Harpa celta ou Marimba, todos sintetizados no navegador.
+As notas soam entre o Fá 2 e o Si 4, e o seletor
 **Intervalos** (que pode ser trocado durante a partida) decide o salto entre
 uma nota e a seguinte, subindo ou descendo:
 

@@ -17,10 +17,10 @@ export const NOTE_COLORS = [
 // Frequências da oitava central (C4–B4), em Hz.
 export const NOTE_FREQS = [261.63, 293.66, 329.63, 349.23, 392.0, 440.0, 493.88];
 
-// Extensão tocada: do Fá 2 ao Mi 4. A oitava de cada nota é escolhida pelo
+// Extensão tocada: do Fá 2 ao Si 4. A oitava de cada nota é escolhida pelo
 // modo de intervalos (abaixo).
 export const RANGE_MIN_HZ = 87.31; // F2
-export const RANGE_MAX_HZ = 329.63; // E4
+export const RANGE_MAX_HZ = 493.88; // B4
 
 export function noteName(value) {
   return NOTES[value];
@@ -40,13 +40,13 @@ export const INTERVAL_MODES = {
 export const DEFAULT_INTERVAL_MODE = 'misto';
 
 const RANGE_MIN_POS = 3 + 7 * 2; // Fá 2
-const RANGE_MAX_POS = 2 + 7 * 4; // Mi 4
+const RANGE_MAX_POS = 6 + 7 * 4; // Si 4
 
 export function posFreq(pos) {
   return NOTE_FREQS[pos % 7] * 2 ** (Math.floor(pos / 7) - 4);
 }
 
-// Posições da nota `value` dentro da extensão (Fá 2 a Mi 4).
+// Posições da nota `value` dentro da extensão (Fá 2 a Si 4).
 export function notePositions(value) {
   const out = [];
   for (let pos = RANGE_MIN_POS; pos <= RANGE_MAX_POS; pos++) {
@@ -60,9 +60,9 @@ export function intervalBetween(a, b) {
 }
 
 // Escolhe a altura da próxima nota `value` depois de `prevPos` (null = sem
-// nota anterior), respeitando o modo de intervalos. Como a nota tem duas
-// alturas possíveis na extensão, separadas por uma oitava, quase sempre uma
-// cai em cada grupo (ex.: 3ª acima ou 6ª abaixo). Se nenhuma servir — perto
+// nota anterior), respeitando o modo de intervalos. Como a nota tem duas ou
+// três alturas possíveis na extensão, separadas por oitavas, quase sempre há
+// uma em cada grupo (ex.: 3ª acima ou 6ª abaixo). Se nenhuma servir — perto
 // das bordas da extensão —, fica a de intervalo mais próximo dos permitidos.
 export function chooseNotePos(prevPos, value, mode = DEFAULT_INTERVAL_MODE, rng = Math.random) {
   const cands = notePositions(value);
@@ -78,8 +78,8 @@ export function chooseNotePos(prevPos, value, mode = DEFAULT_INTERVAL_MODE, rng 
 }
 
 // Alturas das duas notas de uma peça, tocadas em seguida. A prioridade é o
-// intervalo DENTRO da peça: ele sempre respeita o modo (as duas notas têm duas
-// alturas cada, e alguma combinação sempre serve). Entre a peça anterior e
+// intervalo DENTRO da peça: ele sempre respeita o modo (cada nota tem duas ou
+// três alturas, e alguma combinação sempre serve). Entre a peça anterior e
 // esta, o modo também vale quando dá; se não der — perto das bordas da
 // extensão —, a peça muda de oitava em relação à anterior para manter o
 // próprio intervalo. Retorna [pos1, pos2].

@@ -44,8 +44,8 @@ const ehHorizontal = (d) => d === 'right' || d === 'left';
 // escolha de posição —, então até 760 px a peça fica bem menor. Fica aqui
 // para a UI e os testes nunca usarem combinações que não existem.
 export function unidadeParaLargura(largura) {
-  if (largura <= 0 || largura >= 760) return 32;
-  return largura < 420 ? 18 : 22;
+  if (largura <= 0 || largura >= 760) return 34;
+  return largura < 420 ? 19 : 23;
 }
 
 function hash32(texto, semente = 0) {

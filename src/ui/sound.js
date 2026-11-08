@@ -91,6 +91,229 @@ export function setIntervalMode(mode) {
 
 let modoAtual = null;
 
+// Articulação das notas tocadas (a prévia do mouse não muda). Legato: a nota
+// soa por quase todo o tempo até a seguinte, com decay suave e uma pequena
+// separação. Normal: a nota vai sumindo, como já
+// era antes de existir esta opção.
+const ARTICULATION_KEY = 'domino.articulacao';
+export const ARTICULATIONS = ['normal', 'legato'];
+const DEFAULT_ARTICULATION = 'normal';
+const LEGATO_FRACAO = 0.9;
+// Decay suave: a nota perde volume aos poucos até 70% e depois some numa queda
+// longa, em vez de segurar o volume e cortar.
+const LEGATO_SUSTENTACAO = 0.7;
+const LEGATO_RELEASE_S = 0.25;
+
+let articulacaoAtual = null;
+
+export function getArticulation() {
+  if (articulacaoAtual !== null) return articulacaoAtual;
+  let a = DEFAULT_ARTICULATION;
+  try {
+    const salva = localStorage.getItem(ARTICULATION_KEY);
+    if (ARTICULATIONS.includes(salva)) a = salva;
+  } catch {
+    // sem armazenamento: usa o padrão
+  }
+  articulacaoAtual = a;
+  return a;
+}
+
+export function setArticulation(articulacao) {
+  articulacaoAtual = articulacao;
+  try {
+    localStorage.setItem(ARTICULATION_KEY, articulacao);
+  } catch {
+    // vale só nesta sessão da página
+  }
+}
+
+// Duração da nota para a articulação, dado o tempo até a nota seguinte (`gap`)
+// e a duração que ela teria no modo normal.
+export function articularNota(articulacao, gap, normal) {
+  if (articulacao === 'legato') return { duration: gap * LEGATO_FRACAO, sustain: true };
+  return { duration: normal };
+}
+
+// Timbre: famílias de instrumentos sintetizadas na hora (não são gravações).
+// Cada voz combina camadas de osciladores, um filtro que corta os agudos, em
+// múltiplos da frequência da nota, e às vezes vibrato ou ruído de sopro.
+const TIMBRE_KEY = 'domino.timbre';
+const DEFAULT_TIMBRE = 'madeiras';
+// Percussão com altura definida (tipo marimba): o som morre sozinho, então não
+// sustenta no legato.
+const PERCUSSAO_MAX_S = 1.5;
+const VOZES = {
+  madeiras: {
+    ataque: 0.04,
+    camadas: [{ tipo: 'square', ganho: 0.7 }],
+    filtro: { inicio: 4 },
+    vibrato: { hz: 4.5, cents: 5, atraso: 0.3 },
+  },
+  metais: {
+    ataque: 0.05,
+    camadas: [{ tipo: 'sawtooth', ganho: 0.9 }],
+    // O filtro abre logo depois do ataque: é o "brilho" do sopro de metal.
+    filtro: { inicio: 2, fim: 8, abre: 0.1 },
+  },
+  // Flauta: som quase puro (poucos harmônicos) com um pouco de ar soprado.
+  flauta: {
+    ataque: 0.05,
+    camadas: [
+      { tipo: 'sine', ganho: 0.8 },
+      { tipo: 'sine', multiplo: 2, ganho: 0.15 },
+      { tipo: 'sine', multiplo: 3, ganho: 0.08 },
+    ],
+    vibrato: { hz: 4.5, cents: 4, atraso: 0.4 },
+    sopro: 0.04,
+  },
+  // Corda pinçada: ataque seco, som quente, e os harmônicos agudos somem antes
+  // da nota. Como a marimba, morre sozinha.
+  harpa: {
+    ataque: 0.004,
+    percussivo: true,
+    camadas: [
+      { tipo: 'triangle', ganho: 1 },
+      { tipo: 'sine', multiplo: 2, ganho: 0.33, decai: 0.5 },
+      { tipo: 'sine', multiplo: 3, ganho: 0.16, decai: 0.2 },
+    ],
+    filtro: { inicio: 5 },
+  },
+  percussao: {
+    ataque: 0.003,
+    percussivo: true,
+    camadas: [
+      { tipo: 'sine', ganho: 0.8 },
+      { tipo: 'sine', multiplo: 4, ganho: 0.25, decai: 0.15 },
+    ],
+  },
+};
+export const TIMBRES = Object.keys(VOZES);
+
+let timbreAtual = null;
+
+export function getTimbre() {
+  if (timbreAtual !== null) return timbreAtual;
+  let t = DEFAULT_TIMBRE;
+  try {
+    const salvo = localStorage.getItem(TIMBRE_KEY);
+    if (TIMBRES.includes(salvo)) t = salvo;
+  } catch {
+    // sem armazenamento: usa o padrão
+  }
+  timbreAtual = t;
+  return t;
+}
+
+export function setTimbre(timbre) {
+  timbreAtual = timbre;
+  try {
+    localStorage.setItem(TIMBRE_KEY, timbre);
+  } catch {
+    // vale só nesta sessão da página
+  }
+}
+
+// Ajusta o pedido da articulação ao que o timbre consegue fazer. O ataque
+// encolhe em notas curtas, para caber em andamento rápido em qualquer timbre.
+export function envelopeDaVoz(timbre, duration, sustain) {
+  const voz = VOZES[timbre];
+  const dur = voz.percussivo ? Math.min(duration, PERCUSSAO_MAX_S) : duration;
+  return {
+    ataque: Math.min(voz.ataque, dur * 0.3),
+    duration: dur,
+    sustain: sustain && !voz.percussivo,
+  };
+}
+
+// Um segundo de ruído branco, criado uma vez por contexto de áudio.
+const ruidos = new WeakMap();
+function ruido(audio) {
+  if (!ruidos.has(audio)) {
+    const buffer = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
+    const dados = buffer.getChannelData(0);
+    for (let i = 0; i < dados.length; i++) dados[i] = Math.random() * 2 - 1;
+    ruidos.set(audio, buffer);
+  }
+  return ruidos.get(audio);
+}
+
+// Agenda uma nota no instante `t` e devolve os osciladores criados.
+export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, timbre }) {
+  const voz = VOZES[timbre];
+  const env = envelopeDaVoz(timbre, duration, sustain);
+  const fim = t + env.duration;
+
+  const gain = audio.createGain();
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(volume, t + env.ataque);
+  if (env.sustain) {
+    // Em andamento rápido a nota é curta: a queda encolhe junto com ela.
+    const queda = Math.min(LEGATO_RELEASE_S, env.duration * 0.4);
+    gain.gain.exponentialRampToValueAtTime(volume * LEGATO_SUSTENTACAO, fim - queda);
+  }
+  gain.gain.exponentialRampToValueAtTime(0.001, fim);
+  gain.connect(destino);
+
+  let entrada = gain;
+  if (voz.filtro) {
+    const filtro = audio.createBiquadFilter();
+    filtro.type = 'lowpass';
+    filtro.Q.value = 0.7;
+    filtro.frequency.setValueAtTime(freq * voz.filtro.inicio, t);
+    if (voz.filtro.fim) {
+      filtro.frequency.exponentialRampToValueAtTime(freq * voz.filtro.fim, t + voz.filtro.abre);
+    }
+    filtro.connect(gain);
+    entrada = filtro;
+  }
+
+  const oscs = voz.camadas.map((camada) => {
+    const osc = audio.createOscillator();
+    osc.type = camada.tipo;
+    osc.frequency.value = freq * (camada.multiplo ?? 1);
+    osc.detune.value = camada.detune ?? 0;
+    const ganho = audio.createGain();
+    ganho.gain.setValueAtTime(camada.ganho ?? 1, t);
+    if (camada.decai) ganho.gain.exponentialRampToValueAtTime(0.001, t + camada.decai);
+    osc.connect(ganho).connect(entrada);
+    osc.start(t);
+    osc.stop(fim + 0.05);
+    return osc;
+  });
+
+  if (voz.sopro) {
+    // Ruído filtrado em volta da nota: o ar que passa pela flauta.
+    const ar = audio.createBufferSource();
+    ar.buffer = ruido(audio);
+    ar.loop = true;
+    const banda = audio.createBiquadFilter();
+    banda.type = 'bandpass';
+    banda.frequency.value = freq * 2;
+    banda.Q.value = 1;
+    const ganhoAr = audio.createGain();
+    ganhoAr.gain.value = voz.sopro;
+    ar.connect(banda).connect(ganhoAr).connect(entrada);
+    ar.start(t);
+    ar.stop(fim + 0.05);
+    oscs.push(ar);
+  }
+
+  if (voz.vibrato) {
+    const lfo = audio.createOscillator();
+    lfo.frequency.value = voz.vibrato.hz;
+    const profundidade = audio.createGain();
+    profundidade.gain.setValueAtTime(0, t + voz.vibrato.atraso);
+    profundidade.gain.linearRampToValueAtTime(voz.vibrato.cents, t + voz.vibrato.atraso + 0.2);
+    lfo.connect(profundidade);
+    oscs.forEach((osc) => profundidade.connect(osc.detune));
+    lfo.start(t);
+    lfo.stop(fim + 0.05);
+    oscs.push(lfo);
+  }
+  return oscs;
+}
+
 // Altura da última nota tocada: a próxima é escolhida a partir dela.
 let ultimaPos = null;
 
@@ -129,6 +352,7 @@ export function playNotes(
     volume = PLAY_VOLUME,
     preview = false,
     positions = null, // alturas já escolhidas (ex.: as duas notas de uma peça)
+    sustain = false, // legato: mantém a nota soando, com decay suave no fim
   } = {}
 ) {
   if (isMuted() || values.length === 0) return [];
@@ -144,18 +368,8 @@ export function playNotes(
     anterior = pos;
     const freq = posFreq(pos);
     if (!freq) return;
-    const osc = audio.createOscillator();
-    const gain = audio.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = freq;
     const t = start + i * gap;
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(volume, t + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-    osc.connect(gain).connect(saida);
-    osc.start(t);
-    osc.stop(t + duration + 0.05);
-    oscs.push(osc);
+    oscs.push(...tocarVoz(audio, saida, freq, t, { duration, volume, sustain, timbre: getTimbre() }));
   });
   // A prévia do mouse não conta como nota da melodia.
   if (!preview) ultimaPos = anterior;
@@ -166,7 +380,10 @@ export function playNotes(
 // As alturas das duas são escolhidas juntas, para o intervalo dentro da peça
 // respeitar o modo (ver choosePairPos).
 export function playTileNotes(primeira, segunda) {
-  playNotes([primeira, segunda], { positions: planTile(primeira, segunda) });
+  playNotes([primeira, segunda], {
+    positions: planTile(primeira, segunda),
+    ...articularNota(getArticulation(), PLAY_GAP_S, PLAY_DURATION_S),
+  });
 }
 
 // Alturas para as duas notas de uma peça, a partir da última nota tocada.
@@ -214,8 +431,9 @@ export function setChainGap(segundos) {
 // `pos` vem de planTile, feito na primeira nota de cada peça. Em andamento
 // rápido a nota fica mais curta, para não embolar com a seguinte.
 export function playChainNote(value, pos) {
-  const duration = Math.min(CHAIN_DURATION_S, getChainGap() * 0.9);
-  playNotes([value], { duration, positions: [pos] });
+  const gap = getChainGap();
+  const normal = Math.min(CHAIN_DURATION_S, gap * 0.9);
+  playNotes([value], { ...articularNota(getArticulation(), gap, normal), positions: [pos] });
 }
 
 // --- Prévia no hover -------------------------------------------------------

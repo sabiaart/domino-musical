@@ -27,17 +27,35 @@ de trabalho e as decisões que não dá para deduzir do código.
   peça, no centro, e cresce pelas pontas na ordem das jogadas (`seq`).
 - Peça de notas diferentes: o jogador escolhe horizontal ou vertical, entre as
   posições que não encurralam a ponta.
-- O fim de jogo não cobre a mesa: dá para continuar tocando a cadeia.
+- O fim de jogo não cobre a mesa: dá para continuar tocando a cadeia. O resultado
+  ocupa o lugar da mão, sem tirar altura da mesa. Os ajustes de som ficam atrás
+  do botão "Som", num painel por cima, pelo mesmo motivo (pedido do Pedro).
 
 ## Decisões de som
 
-- Extensão: Fá 2 a Mi 4. Modos de intervalo: 1ª–4ª, 5ª–8ª e misto, trocáveis
+- Extensão: Fá 2 a Si 4 (ampliada do Mi 4 a pedido do Pedro). Modos de intervalo: 1ª–4ª, 5ª–8ª e misto, trocáveis
   durante a partida.
 - Prioridade: o intervalo entre as duas notas da mesma peça sempre segue o modo;
   entre peças, a oitava pode mudar para manter isso.
 - Carroça toca a nota duas vezes.
 - Pausar ou parar deixa a nota em curso terminar, para evitar estalo.
+- Teclado: Espaço pausa/continua a cadeia e, parada, toca a mesa inteira desde
+  a primeira ponta. R repete do começo o último trecho tocado, depois de 1 s de
+  silêncio (os dois toques no Espaço foram trocados pelo R a pedido do Pedro).
+  Não agem dentro de campos de texto ou listas, nem com Ctrl/Alt.
 - Velocidade de 0,1 s a 3 s; pico das notas perto de 0 dB, com limitador.
+- Articulação: Normal (padrão, o som de antes) e Legato; o staccato foi retirado
+  a pedido do Pedro. Vale para as
+  notas da peça jogada e da cadeia, não para a prévia do mouse. No legato a nota
+  dura 90% do tempo até a seguinte (o Pedro achou que emendar era legato demais),
+  com decay suave (cai a 70% e some em até 0,25 s), então é a única forma de a
+  nota passar de 1,2 s.
+- Timbre: Clarinete (padrão), Trombone, Flauta de madeira (com ruído de sopro),
+  Harpa celta e Marimba. Simples, cordas, guitarra elétrica, trompete e flauta de
+  bambu foram testados e retirados a pedido do Pedro (no código, os ids
+  continuam `madeiras`, `metais` e `percussao`, para não perder a escolha salva).
+  São sintetizados, não gravações, e valem também para a prévia do mouse. A
+  harpa e a marimba morrem sozinhas: no legato não sustenta e dura até 1,5 s.
 
 ## Celular
 
