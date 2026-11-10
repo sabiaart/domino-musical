@@ -24,8 +24,8 @@ mexer com a cadeia tocando). No computador, a tecla **Espaço** pausa e continua
 a cadeia; com nada tocando, toca a mesa inteira desde a primeira ponta. A tecla **R**
 repete do começo o último trecho tocado, depois de 1 s de silêncio. O seletor **Articulação** deixa as notas longas
 e quase ligadas (Legato) ou com o som padrão (Normal).
-O seletor **Timbre** troca o instrumento: Clarinete (padrão), Trombone, Flauta de
-madeira, Harpa celta ou Marimba, todos sintetizados no navegador.
+O seletor **Timbre** troca o instrumento: Clarinete (padrão), Trombone,
+Violoncelo ou Harpa celta, todos sintetizados no navegador.
 As notas soam entre o Fá 2 e o Si 4, e o seletor
 **Intervalos** (que pode ser trocado durante a partida) decide o salto entre
 uma nota e a seguinte, subindo ou descendo:

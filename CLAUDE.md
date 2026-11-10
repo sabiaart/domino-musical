@@ -50,12 +50,13 @@ de trabalho e as decisões que não dá para deduzir do código.
   dura 90% do tempo até a seguinte (o Pedro achou que emendar era legato demais),
   com decay suave (cai a 70% e some em até 0,25 s), então é a única forma de a
   nota passar de 1,2 s.
-- Timbre: Clarinete (padrão), Trombone, Flauta de madeira (com ruído de sopro),
-  Harpa celta e Marimba. Simples, cordas, guitarra elétrica, trompete e flauta de
-  bambu foram testados e retirados a pedido do Pedro (no código, os ids
-  continuam `madeiras`, `metais` e `percussao`, para não perder a escolha salva).
-  São sintetizados, não gravações, e valem também para a prévia do mouse. A
-  harpa e a marimba morrem sozinhas: no legato não sustenta e dura até 1,5 s.
+- Timbre: Clarinete (padrão), Trombone, Violoncelo e Harpa celta (resgatada a
+  pedido do Pedro; morre sozinha: no legato não sustenta e dura até 1,5 s). No código, os ids do
+  clarinete e do trombone continuam `madeiras` e `metais`, para não perder a
+  escolha salva. São sintetizados, não gravações, e valem também para a prévia
+  do mouse. Já foram testados e retirados a pedido do Pedro: Simples, cordas,
+  guitarra elétrica, trompete, flautas de bambu e de madeira,
+  marimba, violino e voz.
 
 ## Celular
 

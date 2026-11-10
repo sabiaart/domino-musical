@@ -14,9 +14,8 @@ const ARTICULACOES = [
 const TIMBRES = [
   { id: 'madeiras', label: 'Clarinete' },
   { id: 'metais', label: 'Trombone' },
-  { id: 'flauta', label: 'Flauta de madeira' },
+  { id: 'violoncelo', label: 'Violoncelo' },
   { id: 'harpa', label: 'Harpa celta' },
-  { id: 'percussao', label: 'Marimba' },
 ];
 
 // Botões de ação: comprar (só sem jogada e com monte), passar (só sem jogada

@@ -137,11 +137,10 @@ export function articularNota(articulacao, gap, normal) {
 
 // Timbre: famílias de instrumentos sintetizadas na hora (não são gravações).
 // Cada voz combina camadas de osciladores, um filtro que corta os agudos, em
-// múltiplos da frequência da nota, e às vezes vibrato ou ruído de sopro.
+// múltiplos da frequência da nota, e às vezes vibrato.
 const TIMBRE_KEY = 'domino.timbre';
 const DEFAULT_TIMBRE = 'madeiras';
-// Percussão com altura definida (tipo marimba): o som morre sozinho, então não
-// sustenta no legato.
+// Corda pinçada (harpa): o som morre sozinho, então não sustenta no legato.
 const PERCUSSAO_MAX_S = 1.5;
 const VOZES = {
   madeiras: {
@@ -156,19 +155,20 @@ const VOZES = {
     // O filtro abre logo depois do ataque: é o "brilho" do sopro de metal.
     filtro: { inicio: 2, fim: 8, abre: 0.1 },
   },
-  // Flauta: som quase puro (poucos harmônicos) com um pouco de ar soprado.
-  flauta: {
-    ataque: 0.05,
+  // Corda friccionada: duas ondas ricas levemente desafinadas (o arco nunca é
+  // perfeitamente estável), entrada lenta, agudos cortados pela caixa de
+  // madeira e vibrato largo que aparece depois do início da nota.
+  violoncelo: {
+    ataque: 0.1,
     camadas: [
-      { tipo: 'sine', ganho: 0.8 },
-      { tipo: 'sine', multiplo: 2, ganho: 0.15 },
-      { tipo: 'sine', multiplo: 3, ganho: 0.08 },
+      { tipo: 'sawtooth', detune: -5, ganho: 0.5 },
+      { tipo: 'sawtooth', detune: 5, ganho: 0.5 },
     ],
-    vibrato: { hz: 4.5, cents: 4, atraso: 0.4 },
-    sopro: 0.04,
+    filtro: { inicio: 5 },
+    vibrato: { hz: 5.5, cents: 12, atraso: 0.2 },
   },
   // Corda pinçada: ataque seco, som quente, e os harmônicos agudos somem antes
-  // da nota. Como a marimba, morre sozinha.
+  // da nota. Morre sozinha.
   harpa: {
     ataque: 0.004,
     percussivo: true,
@@ -178,14 +178,6 @@ const VOZES = {
       { tipo: 'sine', multiplo: 3, ganho: 0.16, decai: 0.2 },
     ],
     filtro: { inicio: 5 },
-  },
-  percussao: {
-    ataque: 0.003,
-    percussivo: true,
-    camadas: [
-      { tipo: 'sine', ganho: 0.8 },
-      { tipo: 'sine', multiplo: 4, ganho: 0.25, decai: 0.15 },
-    ],
   },
 };
 export const TIMBRES = Object.keys(VOZES);
@@ -224,18 +216,6 @@ export function envelopeDaVoz(timbre, duration, sustain) {
     duration: dur,
     sustain: sustain && !voz.percussivo,
   };
-}
-
-// Um segundo de ruído branco, criado uma vez por contexto de áudio.
-const ruidos = new WeakMap();
-function ruido(audio) {
-  if (!ruidos.has(audio)) {
-    const buffer = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
-    const dados = buffer.getChannelData(0);
-    for (let i = 0; i < dados.length; i++) dados[i] = Math.random() * 2 - 1;
-    ruidos.set(audio, buffer);
-  }
-  return ruidos.get(audio);
 }
 
 // Agenda uma nota no instante `t` e devolve os osciladores criados.
@@ -281,23 +261,6 @@ export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, t
     osc.stop(fim + 0.05);
     return osc;
   });
-
-  if (voz.sopro) {
-    // Ruído filtrado em volta da nota: o ar que passa pela flauta.
-    const ar = audio.createBufferSource();
-    ar.buffer = ruido(audio);
-    ar.loop = true;
-    const banda = audio.createBiquadFilter();
-    banda.type = 'bandpass';
-    banda.frequency.value = freq * 2;
-    banda.Q.value = 1;
-    const ganhoAr = audio.createGain();
-    ganhoAr.gain.value = voz.sopro;
-    ar.connect(banda).connect(ganhoAr).connect(entrada);
-    ar.start(t);
-    ar.stop(fim + 0.05);
-    oscs.push(ar);
-  }
 
   if (voz.vibrato) {
     const lfo = audio.createOscillator();
