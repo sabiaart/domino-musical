@@ -48,11 +48,12 @@ de trabalho e as decisões que não dá para deduzir do código.
   Não agem dentro de campos de texto ou listas, nem com Ctrl/Alt; nas barras de
   velocidade e volume funcionam (elas ficam selecionadas depois de arrastar), e
   a lista de timbres solta a seleção depois da escolha.
-- Velocidade de 0,1 s a 3 s; pico das notas perto de 0 dB, com limitador.
+- Velocidade de 0,1 s a 3,5 s (o Pedro já testou 3 s e 4 s); pico das notas perto de 0 dB, com limitador.
 - Articulação: Normal (padrão, o som de antes) e Legato; o staccato foi retirado
   a pedido do Pedro. Vale para as
   notas da peça jogada e da cadeia, não para a prévia do mouse. No legato a nota
-  dura 90% do tempo até a seguinte (o Pedro achou que emendar era legato demais),
+  dura 80% do tempo até a seguinte (o Pedro achou legato demais emendar e,
+  depois, 90%),
   com decay suave (cai a 70% e some em até 0,25 s), então é a única forma de a
   nota passar de 1,2 s.
 - Timbre: Clarinete (padrão), Trombone, Violoncelo e Harpa celta (resgatada a

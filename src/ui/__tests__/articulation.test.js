@@ -9,7 +9,7 @@ describe('articularNota', () => {
   it('legato: nota segura quase até a seguinte, com uma pequena separação', () => {
     for (const gap of [CHAIN_GAP_MIN_S, 1, CHAIN_GAP_MAX_S]) {
       const { duration, sustain } = articularNota('legato', gap, 1.2);
-      expect(duration).toBeCloseTo(gap * 0.9);
+      expect(duration).toBeCloseTo(gap * 0.8);
       expect(sustain).toBe(true);
     }
   });

@@ -19,7 +19,7 @@ sobre metade de uma peça toca aquela nota, então dá para "tocar" a cadeia
 correndo o mouse por ela. Sobre cada peça da mesa aparecem também os botões
 **setas**, que tocam a cadeia dali até uma das pontas — cada seta aponta
 para a peça vizinha naquele sentido —, nota por nota, com o tempo entre elas
-escolhido na barra **Velocidade** (de 0,1 s a 3 s; padrão 2 s, e dá para
+escolhido na barra **Velocidade** (de 0,1 s a 3,5 s; padrão 2 s, e dá para
 mexer com a cadeia tocando). No canto inferior esquerdo da mesa ficam os botões **▶/⏸** e **⏹**; com
 nada tocando, o ▶ toca a mesa inteira. No computador, a tecla **Espaço** pausa e continua
 a cadeia; com nada tocando, toca a mesa inteira desde a primeira ponta. A tecla **R**

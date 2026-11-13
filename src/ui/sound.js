@@ -98,7 +98,7 @@ let modoAtual = null;
 const ARTICULATION_KEY = 'domino.articulacao';
 export const ARTICULATIONS = ['normal', 'legato'];
 const DEFAULT_ARTICULATION = 'normal';
-const LEGATO_FRACAO = 0.9;
+const LEGATO_FRACAO = 0.8;
 // Decay suave: a nota perde volume aos poucos até 70% e depois some numa queda
 // longa, em vez de segurar o volume e cortar.
 const LEGATO_SUSTENTACAO = 0.7;
@@ -359,11 +359,11 @@ export function planTile(primeira, segunda) {
 // Toca a mesa a partir de uma peça até uma das pontas, peça por peça.
 // Pausar ou parar não corta a nota em curso: ela termina pelo próprio
 // envelope, sem estalo.
-// Intervalo entre as notas, ajustável na barra de velocidade (0,1 s a 3 s).
+// Intervalo entre as notas, ajustável na barra de velocidade (0,1 s a 3,5 s).
 // Vale já na próxima nota, mesmo com a cadeia tocando.
 const SPEED_KEY = 'domino.velocidade';
 export const CHAIN_GAP_MIN_S = 0.1;
-export const CHAIN_GAP_MAX_S = 3.0;
+export const CHAIN_GAP_MAX_S = 3.5;
 export const CHAIN_GAP_DEFAULT_S = 2.0;
 const CHAIN_DURATION_S = 1.2;
 
@@ -374,7 +374,9 @@ export function getChainGap() {
   let g = CHAIN_GAP_DEFAULT_S;
   try {
     const salvo = parseFloat(localStorage.getItem(SPEED_KEY));
-    if (salvo >= CHAIN_GAP_MIN_S && salvo <= CHAIN_GAP_MAX_S) g = salvo;
+    // Valor salvo fora da faixa (o limite já mudou algumas vezes) fica no
+    // limite mais próximo, em vez de voltar ao padrão.
+    if (Number.isFinite(salvo)) g = Math.min(CHAIN_GAP_MAX_S, Math.max(CHAIN_GAP_MIN_S, salvo));
   } catch {
     // sem armazenamento: usa o padrão
   }
