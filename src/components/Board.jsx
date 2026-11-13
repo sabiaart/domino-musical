@@ -202,18 +202,35 @@ export default function Board({
 
   return (
     <div className="board-area">
-      {player && (
+      {/* Play, pause e stop, sempre à mão no canto inferior esquerdo da mesa.
+          Parado, o play toca a mesa inteira desde a primeira ponta (como o Espaço). */}
+      {board.length > 0 && (
         <div className="chain-transport" role="group" aria-label="Reprodução da cadeia">
           {player === 'tocando' ? (
-            <button type="button" onClick={pausar} aria-label="Pausar" title="Pausar">
+            <button type="button" onClick={pausar} aria-label="Pausar" title="Pausar (Espaço)">
               ⏸
             </button>
+          ) : player === 'pausado' ? (
+            <button type="button" onClick={continuar} aria-label="Continuar" title="Continuar (Espaço)">
+              ▶
+            </button>
           ) : (
-            <button type="button" onClick={continuar} aria-label="Continuar" title="Continuar">
+            <button
+              type="button"
+              onClick={() => tocarDesde(0, 'fim')}
+              aria-label="Tocar a mesa"
+              title="Tocar a mesa inteira (Espaço)"
+            >
               ▶
             </button>
           )}
-          <button type="button" onClick={pararCadeia} aria-label="Parar" title="Parar">
+          <button
+            type="button"
+            onClick={pararCadeia}
+            disabled={!player}
+            aria-label="Parar"
+            title="Parar"
+          >
             ⏹
           </button>
         </div>

@@ -39,6 +39,8 @@ de trabalho e as decisões que não dá para deduzir do código.
   entre peças, a oitava pode mudar para manter isso.
 - Carroça toca a nota duas vezes.
 - Pausar ou parar deixa a nota em curso terminar, para evitar estalo.
+- Botões ▶/⏸ e ⏹ sempre visíveis no canto inferior esquerdo da mesa (pedido do
+  Pedro); parado, o ▶ toca a mesa inteira, como o Espaço.
 - Teclado: Espaço pausa/continua a cadeia e, parada, toca a mesa inteira desde
   a primeira ponta. R repete do começo o último trecho tocado, depois de 1 s de
   silêncio (os dois toques no Espaço foram trocados pelo R a pedido do Pedro).

@@ -20,7 +20,8 @@ correndo o mouse por ela. Sobre cada peça da mesa aparecem também os botões
 **setas**, que tocam a cadeia dali até uma das pontas — cada seta aponta
 para a peça vizinha naquele sentido —, nota por nota, com o tempo entre elas
 escolhido na barra **Velocidade** (de 0,1 s a 3 s; padrão 2 s, e dá para
-mexer com a cadeia tocando). No computador, a tecla **Espaço** pausa e continua
+mexer com a cadeia tocando). No canto inferior esquerdo da mesa ficam os botões **▶/⏸** e **⏹**; com
+nada tocando, o ▶ toca a mesa inteira. No computador, a tecla **Espaço** pausa e continua
 a cadeia; com nada tocando, toca a mesa inteira desde a primeira ponta. A tecla **R**
 repete do começo o último trecho tocado, depois de 1 s de silêncio. O seletor **Articulação** deixa as notas longas
 e quase ligadas (Legato) ou com o som padrão (Normal).
