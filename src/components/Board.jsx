@@ -179,8 +179,11 @@ export default function Board({
       if ((e.code !== 'Space' && e.code !== 'KeyR') || e.repeat) return;
       // Ctrl+R e afins são do navegador (recarregar a página).
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      // Digitando um nome ou mexendo numa lista, a tecla é do campo.
-      if (e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+      // Digitando um nome ou mexendo numa lista, a tecla é do campo. As barras
+      // (velocidade, volume) não contam: depois de arrastá-las elas ficam
+      // selecionadas, e o Espaço e o R têm de continuar funcionando.
+      const campo = e.target.closest?.('input, textarea, select, [contenteditable]');
+      if (campo && !(campo.tagName === 'INPUT' && campo.type === 'range')) return;
       // Sem isto o espaço "clica" no último botão usado ou rola a página.
       e.preventDefault();
       tecladoRef.current(e.code);

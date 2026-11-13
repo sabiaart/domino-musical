@@ -42,7 +42,9 @@ de trabalho e as decisões que não dá para deduzir do código.
 - Teclado: Espaço pausa/continua a cadeia e, parada, toca a mesa inteira desde
   a primeira ponta. R repete do começo o último trecho tocado, depois de 1 s de
   silêncio (os dois toques no Espaço foram trocados pelo R a pedido do Pedro).
-  Não agem dentro de campos de texto ou listas, nem com Ctrl/Alt.
+  Não agem dentro de campos de texto ou listas, nem com Ctrl/Alt; nas barras de
+  velocidade e volume funcionam (elas ficam selecionadas depois de arrastar), e
+  a lista de timbres solta a seleção depois da escolha.
 - Velocidade de 0,1 s a 3 s; pico das notas perto de 0 dB, com limitador.
 - Articulação: Normal (padrão, o som de antes) e Legato; o staccato foi retirado
   a pedido do Pedro. Vale para as

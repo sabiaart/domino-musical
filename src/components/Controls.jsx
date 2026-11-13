@@ -100,7 +100,11 @@ export default function Controls({
             <select
               className="timbre-select"
               value={timbre}
-              onChange={(e) => onTimbre(e.target.value)}
+              onChange={(e) => {
+                onTimbre(e.target.value);
+                // Solta a lista: com ela selecionada, o Espaço e o R não chegariam ao jogo.
+                e.target.blur();
+              }}
             >
               {TIMBRES.map((t) => (
                 <option key={t.id} value={t.id}>
