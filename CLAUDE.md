@@ -37,6 +37,8 @@ de trabalho e as decisões que não dá para deduzir do código.
   durante a partida.
 - Prioridade: o intervalo entre as duas notas da mesma peça sempre segue o modo;
   entre peças, a oitava pode mudar para manter isso.
+- Peça jogada: cada uma das duas notas ocupa 1,5 s (soa 1,5 s e a seguinte
+  começa depois; o Pedro testou 1,8 s). No Legato, a nota dura 80% disso.
 - Carroça toca a nota duas vezes.
 - Pausar ou parar deixa a nota em curso terminar, para evitar estalo.
 - Botões ▶/⏸ e ⏹ sempre visíveis no canto inferior esquerdo da mesa (pedido do

@@ -12,9 +12,10 @@ import {
 const MUTE_KEY = 'domino.muted';
 const INTERVAL_KEY = 'domino.intervalos';
 
-// Peça colocada na mesa: uma nota por vez, com 1s entre elas.
-const PLAY_GAP_S = 1.0;
-const PLAY_DURATION_S = 0.5;
+// Peça colocada na mesa: uma nota por vez, cada uma ocupando 1,5 s (soa por
+// 1,5 s e a seguinte começa depois disso), a pedido do Pedro.
+const PLAY_GAP_S = 1.5;
+const PLAY_DURATION_S = 1.5;
 // Pico de cada nota perto de 0 dBFS (0,9 ≈ -1 dB). Notas que se sobrepõem
 // (andamento rápido) passam por um limitador antes da saída, sem distorcer.
 const PLAY_VOLUME = 0.9;

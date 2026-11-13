@@ -13,8 +13,8 @@ a cadeia cresce pelas pontas: uma peça, depois de posta, nunca mais muda de
 lugar nem de forma.
 
 O tabuleiro soa: ao entrar na mesa, a peça **toca as suas notas** — primeiro a
-que encaixou na ponta, depois a que ficou de fora como nova ponta, com um
-segundo entre elas (a carroça toca a mesma nota duas vezes). **Passar o mouse**
+que encaixou na ponta, depois a que ficou de fora como nova ponta, cada uma
+soando por 1,5 s (a carroça toca a mesma nota duas vezes). **Passar o mouse**
 sobre metade de uma peça toca aquela nota, então dá para "tocar" a cadeia
 correndo o mouse por ela. Sobre cada peça da mesa aparecem também os botões
 **setas**, que tocam a cadeia dali até uma das pontas — cada seta aponta
