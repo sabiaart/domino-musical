@@ -1082,6 +1082,21 @@ input[type='text']:focus {
     padding: 6px 8px 10px;
   }
 
+  /* Celular: play/pause/stop menores e mais discretos (pedido do Pedro). */
+  .chain-transport {
+    bottom: 14px;
+    left: 16px;
+    gap: 3px;
+    padding: 3px;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  .chain-transport button {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
   /* Aqui os botões ocupam duas linhas: o painel fica acima das duas. */
   .sound-panel {
     bottom: 100px;
@@ -1322,14 +1337,19 @@ input[type='text']:focus {
     flex: 0 1 auto;
   }
 
+  /* Celular: play/pause/stop menores e mais discretos (pedido do Pedro). */
   .chain-transport {
-    bottom: 10px;
-    left: 10px;
+    bottom: 8px;
+    left: 8px;
+    gap: 3px;
+    padding: 3px;
+    background: rgba(0, 0, 0, 0.4);
   }
 
   .chain-transport button {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
   }
 
   /* Menu: o título encolhe para caber sem tanta rolagem. */
