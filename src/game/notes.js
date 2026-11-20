@@ -5,7 +5,7 @@ export const NOTES = ['Dó', 'Ré', 'Mi', 'Fá', 'Sol', 'Lá', 'Si'];
 
 // Cores por nota (arco-íris, inspirado nos boomwhackers).
 export const NOTE_COLORS = [
-  '#e5484d', // Dó — vermelho
+  '#e0141e', // Dó — vermelho (mais intenso a pedido do Pedro; era #e5484d)
   '#f76b15', // Ré — laranja
   '#eab308', // Mi — amarelo
   '#46a758', // Fá — verde
