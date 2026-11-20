@@ -33,7 +33,10 @@ de trabalho e as decisões que não dá para deduzir do código.
 
 ## Decisões de som
 
-- Extensão: Fá 2 a Si 4 (ampliada do Mi 4 a pedido do Pedro). Modos de intervalo: 1ª–4ª, 5ª–8ª e misto, trocáveis
+- Extensão: Sol 1 a Fá 4 **na numeração do Pedro, em que o Dó central é o Dó 3**
+  (98 a 698 Hz; no código, com Dó 4 central, G2 a F5). Ao falar de oitavas com
+  ele, usar essa numeração. Cada nota tem três alturas. As extensões anteriores
+  (Fá 2 a Mi 4, Fá 2 a Si 4) estavam na numeração com Dó 4 central. Modos de intervalo: 1ª–4ª, 5ª–8ª e misto, trocáveis
   durante a partida.
 - Prioridade: o intervalo entre as duas notas da mesma peça sempre segue o modo;
   entre peças, a oitava pode mudar para manter isso.

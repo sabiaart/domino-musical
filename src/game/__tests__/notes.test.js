@@ -37,18 +37,18 @@ describe('notes', () => {
     expect(NOTE_FREQS[5]).toBeCloseTo(440); // Lá = A4
   });
 
-  it('extensão de Fá 2 a Si 4: Dó, Ré e Mi têm duas alturas; Fá a Si, três', () => {
+  it('extensão de Sol 1 a Fá 4: cada nota tem três alturas, uma oitava aparte', () => {
     for (let v = 0; v < 7; v++) {
       const alturas = notePositions(v);
-      expect(alturas).toHaveLength(v <= 2 ? 2 : 3);
+      expect(alturas).toHaveLength(3);
       for (let i = 1; i < alturas.length; i++) expect(alturas[i] - alturas[i - 1]).toBe(7);
       for (const pos of alturas) {
         expect(posFreq(pos)).toBeGreaterThanOrEqual(RANGE_MIN_HZ - 0.01);
         expect(posFreq(pos)).toBeLessThanOrEqual(RANGE_MAX_HZ + 0.01);
       }
     }
-    expect(posFreq(notePositions(3)[0])).toBeCloseTo(87.31, 1); // Fá 2
-    expect(posFreq(notePositions(6).at(-1))).toBeCloseTo(493.88, 1); // Si 4
+    expect(posFreq(notePositions(4)[0])).toBeCloseTo(98.0, 1); // Sol 1 (G2)
+    expect(posFreq(notePositions(3).at(-1))).toBeCloseTo(698.46, 1); // Fá 4 (F5)
   });
 
   it('cada modo só usa os seus intervalos, subindo e descendo', () => {

@@ -17,10 +17,11 @@ export const NOTE_COLORS = [
 // Frequências da oitava central (C4–B4), em Hz.
 export const NOTE_FREQS = [261.63, 293.66, 329.63, 349.23, 392.0, 440.0, 493.88];
 
-// Extensão tocada: do Fá 2 ao Si 4. A oitava de cada nota é escolhida pelo
+// Extensão tocada: do Sol 1 ao Fá 4 na numeração do Pedro (Dó 3 = Dó central),
+// que no código, com Dó 4 = Dó central, é do Sol 2 ao Fá 5. A oitava de cada nota é escolhida pelo
 // modo de intervalos (abaixo).
-export const RANGE_MIN_HZ = 87.31; // F2
-export const RANGE_MAX_HZ = 493.88; // B4
+export const RANGE_MIN_HZ = 98.0; // G2
+export const RANGE_MAX_HZ = 698.46; // F5
 
 export function noteName(value) {
   return NOTES[value];
@@ -39,14 +40,14 @@ export const INTERVAL_MODES = {
 };
 export const DEFAULT_INTERVAL_MODE = 'misto';
 
-const RANGE_MIN_POS = 3 + 7 * 2; // Fá 2
-const RANGE_MAX_POS = 6 + 7 * 4; // Si 4
+const RANGE_MIN_POS = 4 + 7 * 2; // G2 (Sol 1 do Pedro)
+const RANGE_MAX_POS = 3 + 7 * 5; // F5 (Fá 4 do Pedro)
 
 export function posFreq(pos) {
   return NOTE_FREQS[pos % 7] * 2 ** (Math.floor(pos / 7) - 4);
 }
 
-// Posições da nota `value` dentro da extensão (Fá 2 a Si 4).
+// Posições da nota `value` dentro da extensão.
 export function notePositions(value) {
   const out = [];
   for (let pos = RANGE_MIN_POS; pos <= RANGE_MAX_POS; pos++) {
