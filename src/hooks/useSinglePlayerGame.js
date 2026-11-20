@@ -8,7 +8,7 @@ const AI_INDEX = 1;
 // Antes de jogar, o computador espera as notas da peça anterior terminarem,
 // para elas não se atropelarem. Comprar e passar não soam nada — nesses casos
 // a espera é só de ritmo, e uma sequência de compras não fica arrastada.
-const AI_PLAY_DELAY_MS = 4000;
+const AI_PLAY_DELAY_MS = 5000; // era 4000; o Pedro pediu um pouco mais de espera
 const AI_QUIET_DELAY_MS = 900;
 
 export function useSinglePlayerGame(playerName) {

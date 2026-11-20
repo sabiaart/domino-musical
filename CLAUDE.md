@@ -21,7 +21,8 @@ de trabalho e as decisões que não dá para deduzir do código.
   fechado: vence quem tem menos peças; empate se igual.
 - Começa a carroça mais grave (Dó-Dó, Ré-Ré…). Ninguém com carroça: compram do
   monte, um de cada vez, até aparecer uma.
-- O computador joga uma peça válida por sorteio (sem níveis de dificuldade).
+- O computador joga uma peça válida por sorteio (sem níveis de dificuldade),
+  esperando 5 s antes de jogar (as notas da peça anterior soam 3 s).
 - Carroça liga sempre pelo meio e a cadeia nunca vira nela.
 - **Peça já posta nunca muda de lugar nem de forma.** A cadeia nasce da primeira
   peça, no centro, e cresce pelas pontas na ordem das jogadas (`seq`).
@@ -33,41 +34,45 @@ de trabalho e as decisões que não dá para deduzir do código.
 
 ## Decisões de som
 
-- Extensão: Sol 1 a Fá 4 **na numeração do Pedro, em que o Dó central é o Dó 3**
-  (98 a 698 Hz; no código, com Dó 4 central, G2 a F5). Ao falar de oitavas com
-  ele, usar essa numeração. Cada nota tem três alturas. As extensões anteriores
-  (Fá 2 a Mi 4, Fá 2 a Si 4) estavam na numeração com Dó 4 central. Modos de intervalo: 1ª–4ª, 5ª–8ª e misto, trocáveis
+- Extensão: Sol 1 a Dó 5 **na numeração do Pedro, em que o Dó central é o Dó 3**
+  (98 a 1046 Hz; no código, com Dó 4 central, G2 a C6). Ao falar de oitavas com
+  ele, usar essa numeração. Dó, Sol, Lá e Si têm quatro alturas; Ré, Mi e Fá,
+  três. Antes foi Sol 1 a Fá 4; Fá 2 a Mi 4 e Fá 2 a Si 4 estavam na numeração
+  com Dó 4 central. Modos de intervalo: 1ª–4ª, 5ª–8ª e misto, trocáveis
   durante a partida.
 - Prioridade: o intervalo entre as duas notas da mesma peça sempre segue o modo;
   entre peças, a oitava pode mudar para manter isso.
 - Peça jogada: cada uma das duas notas ocupa 1,5 s (soa 1,5 s e a seguinte
-  começa depois; o Pedro testou 1,8 s). No Legato, a nota dura 80% disso.
+  começa depois; o Pedro testou 1,8 s). A articulação decide quanto desse
+  tempo a nota soa.
 - Carroça toca a nota duas vezes.
 - Pausar ou parar deixa a nota em curso terminar, para evitar estalo.
 - Botões ▶/⏸ e ⏹ sempre visíveis no canto inferior esquerdo da mesa (pedido do
   Pedro); parado, o ▶ toca a mesa inteira, como o Espaço. No celular são menores
-  e mais discretos (24 px em vez de 34).
+  e mais discretos (24 px em vez de 34). Em telas de toque (tablet e celular)
+  aparece também um botão R, que repete o último trecho como a tecla R.
 - Teclado: Espaço pausa/continua a cadeia e, parada, toca a mesa inteira desde
   a primeira ponta. R repete do começo o último trecho tocado, depois de 1 s de
   silêncio (os dois toques no Espaço foram trocados pelo R a pedido do Pedro).
   Não agem dentro de campos de texto ou listas, nem com Ctrl/Alt; nas barras de
   velocidade e volume funcionam (elas ficam selecionadas depois de arrastar), e
   a lista de timbres solta a seleção depois da escolha.
-- Velocidade de 0,1 s a 3,5 s (o Pedro já testou 3 s e 4 s); pico das notas perto de 0 dB, com limitador.
-- Articulação: Normal (padrão, o som de antes) e Legato; o staccato foi retirado
-  a pedido do Pedro. Vale para as
-  notas da peça jogada e da cadeia, não para a prévia do mouse. No legato a nota
-  dura 80% do tempo até a seguinte (o Pedro achou legato demais emendar e,
-  depois, 90%),
-  com decay suave (cai a 70% e some em até 0,25 s), então é a única forma de a
-  nota passar de 1,2 s.
-- Timbre: Clarinete (padrão), Trombone, Violoncelo e Harpa celta (resgatada a
-  pedido do Pedro; morre sozinha: no legato não sustenta e dura até 1,5 s). No código, os ids do
-  clarinete e do trombone continuam `madeiras` e `metais`, para não perder a
-  escolha salva. São sintetizados, não gravações, e valem também para a prévia
+- Velocidade de 0,1 s a 3,5 s (o Pedro já testou 3 s e 4 s), padrão 1,5 s quando a
+  barra nunca foi mexida; pico das notas perto de 0 dB, com limitador.
+- Articulação (pedido do Pedro): Staccato (no máximo 0,2 s), Desligado (padrão;
+  50% do tempo até a seguinte, mais perto do staccato a pedido do Pedro; 80%
+  ficou ligado demais, com decay suave: cai a 70% e some em até
+  0,25 s) e Legato (emenda: dura o tempo até a seguinte mais 0,15 s, então a
+  queda passa por dentro da nota seguinte). Vale para a peça jogada e a cadeia,
+  não para a prévia do mouse. Já houve Normal (nota sumindo em até 1,2 s) e um
+  Legato de 90%, retirados.
+- Timbre: Clarinete (padrão), Violoncelo e Harpa celta (resgatada a
+  pedido do Pedro). A harpa não sustenta: vai morrendo desde o toque, e a
+  articulação decide quando a corda é abafada (até 4 s no legato). No código, o id do
+  clarinete continua `madeiras`, para não perder a escolha salva. São sintetizados, não gravações, e valem também para a prévia
   do mouse. Já foram testados e retirados a pedido do Pedro: Simples, cordas,
-  guitarra elétrica, trompete, flautas de bambu e de madeira,
-  marimba, violino e voz.
+  guitarra elétrica, trompete, trombone, flautas de bambu e de
+  madeira, marimba, violino e voz.
 
 ## Celular
 

@@ -92,14 +92,16 @@ export function setIntervalMode(mode) {
 
 let modoAtual = null;
 
-// Articulação das notas tocadas (a prévia do mouse não muda). Legato: a nota
-// soa por quase todo o tempo até a seguinte, com decay suave e uma pequena
-// separação. Normal: a nota vai sumindo, como já
-// era antes de existir esta opção.
+// Articulação das notas tocadas (a prévia do mouse não muda), conforme o tempo
+// até a nota seguinte. Staccato: nota curta e destacada. Desligado: soa a maior
+// parte do tempo e se separa um pouco da seguinte. Legato: emenda totalmente na
+// seguinte (a queda de uma passa por dentro do começo da outra).
 const ARTICULATION_KEY = 'domino.articulacao';
-export const ARTICULATIONS = ['normal', 'legato'];
-const DEFAULT_ARTICULATION = 'normal';
-const LEGATO_FRACAO = 0.8;
+export const ARTICULATIONS = ['staccato', 'desligado', 'legato'];
+const DEFAULT_ARTICULATION = 'desligado';
+const STACCATO_DURATION_S = 0.2;
+const DESLIGADO_FRACAO = 0.5;
+const LEGATO_EMENDA_S = 0.15;
 // Decay suave: a nota perde volume aos poucos até 70% e depois some numa queda
 // longa, em vez de segurar o volume e cortar.
 const LEGATO_SUSTENTACAO = 0.7;
@@ -129,11 +131,11 @@ export function setArticulation(articulacao) {
   }
 }
 
-// Duração da nota para a articulação, dado o tempo até a nota seguinte (`gap`)
-// e a duração que ela teria no modo normal.
-export function articularNota(articulacao, gap, normal) {
-  if (articulacao === 'legato') return { duration: gap * LEGATO_FRACAO, sustain: true };
-  return { duration: normal };
+// Duração da nota para a articulação, dado o tempo até a nota seguinte (`gap`).
+export function articularNota(articulacao, gap) {
+  if (articulacao === 'staccato') return { duration: Math.min(STACCATO_DURATION_S, gap * 0.5) };
+  if (articulacao === 'legato') return { duration: gap + LEGATO_EMENDA_S, sustain: true };
+  return { duration: gap * DESLIGADO_FRACAO, sustain: true };
 }
 
 // Timbre: famílias de instrumentos sintetizadas na hora (não são gravações).
@@ -141,20 +143,16 @@ export function articularNota(articulacao, gap, normal) {
 // múltiplos da frequência da nota, e às vezes vibrato.
 const TIMBRE_KEY = 'domino.timbre';
 const DEFAULT_TIMBRE = 'madeiras';
-// Corda pinçada (harpa): o som morre sozinho, então não sustenta no legato.
-const PERCUSSAO_MAX_S = 1.5;
+// Corda pinçada (harpa): o som não sustenta, vai morrendo desde o toque; a
+// articulação decide quando a corda é abafada (staccato logo, desligado antes
+// da seguinte, legato só quando a seguinte soa).
+const PERCUSSAO_MAX_S = 4;
 const VOZES = {
   madeiras: {
     ataque: 0.04,
     camadas: [{ tipo: 'square', ganho: 0.7 }],
     filtro: { inicio: 4 },
     vibrato: { hz: 4.5, cents: 5, atraso: 0.3 },
-  },
-  metais: {
-    ataque: 0.05,
-    camadas: [{ tipo: 'sawtooth', ganho: 0.9 }],
-    // O filtro abre logo depois do ataque: é o "brilho" do sopro de metal.
-    filtro: { inicio: 2, fim: 8, abre: 0.1 },
   },
   // Corda friccionada: duas ondas ricas levemente desafinadas (o arco nunca é
   // perfeitamente estável), entrada lenta, agudos cortados pela caixa de
@@ -242,9 +240,6 @@ export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, t
     filtro.type = 'lowpass';
     filtro.Q.value = 0.7;
     filtro.frequency.setValueAtTime(freq * voz.filtro.inicio, t);
-    if (voz.filtro.fim) {
-      filtro.frequency.exponentialRampToValueAtTime(freq * voz.filtro.fim, t + voz.filtro.abre);
-    }
     filtro.connect(gain);
     entrada = filtro;
   }
@@ -346,7 +341,7 @@ export function playNotes(
 export function playTileNotes(primeira, segunda) {
   playNotes([primeira, segunda], {
     positions: planTile(primeira, segunda),
-    ...articularNota(getArticulation(), PLAY_GAP_S, PLAY_DURATION_S),
+    ...articularNota(getArticulation(), PLAY_GAP_S),
   });
 }
 
@@ -365,8 +360,8 @@ export function planTile(primeira, segunda) {
 const SPEED_KEY = 'domino.velocidade';
 export const CHAIN_GAP_MIN_S = 0.1;
 export const CHAIN_GAP_MAX_S = 3.5;
-export const CHAIN_GAP_DEFAULT_S = 2.0;
-const CHAIN_DURATION_S = 1.2;
+// Sem mexer na barra, a cadeia toca a 1,5 s por nota (pedido do Pedro).
+export const CHAIN_GAP_DEFAULT_S = 1.5;
 
 let gapAtual = null;
 
@@ -398,8 +393,7 @@ export function setChainGap(segundos) {
 // rápido a nota fica mais curta, para não embolar com a seguinte.
 export function playChainNote(value, pos) {
   const gap = getChainGap();
-  const normal = Math.min(CHAIN_DURATION_S, gap * 0.9);
-  playNotes([value], { ...articularNota(getArticulation(), gap, normal), positions: [pos] });
+  playNotes([value], { ...articularNota(getArticulation(), gap), positions: [pos] });
 }
 
 // --- Prévia no hover -------------------------------------------------------

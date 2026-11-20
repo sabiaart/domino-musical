@@ -7,13 +7,13 @@ const MODOS = [
 ];
 
 const ARTICULACOES = [
-  { id: 'normal', label: 'Normal', hint: 'A nota vai sumindo aos poucos' },
-  { id: 'legato', label: 'Legato', hint: 'Cada nota dura quase até a seguinte começar' },
+  { id: 'staccato', label: 'Staccato', hint: 'Notas curtas e destacadas' },
+  { id: 'desligado', label: 'Desligado', hint: 'Notas pouco ligadas, com uma pequena separação' },
+  { id: 'legato', label: 'Legato', hint: 'Notas totalmente ligadas, emendando na seguinte' },
 ];
 
 const TIMBRES = [
   { id: 'madeiras', label: 'Clarinete' },
-  { id: 'metais', label: 'Trombone' },
   { id: 'violoncelo', label: 'Violoncelo' },
   { id: 'harpa', label: 'Harpa celta' },
 ];

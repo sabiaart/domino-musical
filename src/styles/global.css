@@ -571,6 +571,19 @@ input[type='text']:focus {
   transition: background 0.15s ease;
 }
 
+/* Botão R: no computador a tecla R faz isso; ele só aparece em telas de toque
+   (tablet e celular). */
+.chain-transport .so-toque {
+  display: none;
+  font-weight: 800;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .chain-transport .so-toque {
+    display: inline-block;
+  }
+}
+
 .chain-transport button:disabled {
   opacity: 0.35;
   cursor: default;

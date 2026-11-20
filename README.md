@@ -19,16 +19,18 @@ sobre metade de uma peça toca aquela nota, então dá para "tocar" a cadeia
 correndo o mouse por ela. Sobre cada peça da mesa aparecem também os botões
 **setas**, que tocam a cadeia dali até uma das pontas — cada seta aponta
 para a peça vizinha naquele sentido —, nota por nota, com o tempo entre elas
-escolhido na barra **Velocidade** (de 0,1 s a 3,5 s; padrão 2 s, e dá para
+escolhido na barra **Velocidade** (de 0,1 s a 3,5 s; padrão 1,5 s, e dá para
 mexer com a cadeia tocando). No canto inferior esquerdo da mesa ficam os botões **▶/⏸** e **⏹**; com
-nada tocando, o ▶ toca a mesa inteira. No computador, a tecla **Espaço** pausa e continua
+nada tocando, o ▶ toca a mesa inteira. No tablet e no celular aparece também o
+botão **R**, que repete o último trecho. No computador, a tecla **Espaço** pausa e continua
 a cadeia; com nada tocando, toca a mesa inteira desde a primeira ponta. A tecla **R**
-repete do começo o último trecho tocado, depois de 1 s de silêncio. O seletor **Articulação** deixa as notas longas
-e quase ligadas (Legato) ou com o som padrão (Normal).
-O seletor **Timbre** troca o instrumento: Clarinete (padrão), Trombone,
+repete do começo o último trecho tocado, depois de 1 s de silêncio. O seletor **Articulação** tem
+**Staccato** (notas curtas), **Desligado** (pouco ligadas; padrão) e **Legato**
+(totalmente ligadas), inclusive na harpa, que abafa a corda conforme a escolha.
+O seletor **Timbre** troca o instrumento: Clarinete (padrão),
 Violoncelo ou Harpa celta, todos sintetizados no navegador.
-As notas soam entre o Sol 1 e o Fá 4 (com o Dó central do piano como Dó 3;
-de 98 Hz a 698 Hz), e o seletor
+As notas soam entre o Sol 1 e o Dó 5 (com o Dó central do piano como Dó 3;
+de 98 Hz a 1046 Hz), e o seletor
 **Intervalos** (que pode ser trocado durante a partida) decide o salto entre
 uma nota e a seguinte, subindo ou descendo:
 

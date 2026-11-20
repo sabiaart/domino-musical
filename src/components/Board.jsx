@@ -233,6 +233,16 @@ export default function Board({
           >
             ⏹
           </button>
+          {/* Repetir, como a tecla R: só aparece em telas de toque (sem teclado). */}
+          <button
+            type="button"
+            className="so-toque"
+            onClick={() => tecladoRef.current('KeyR')}
+            aria-label="Repetir o último trecho"
+            title="Repetir o último trecho"
+          >
+            R
+          </button>
         </div>
       )}
       <div className="board-scroll" ref={areaRef}>
