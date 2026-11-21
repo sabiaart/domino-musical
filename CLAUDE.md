@@ -42,8 +42,8 @@ de trabalho e as decisões que não dá para deduzir do código.
   durante a partida.
 - Prioridade: o intervalo entre as duas notas da mesma peça sempre segue o modo;
   entre peças, a oitava pode mudar para manter isso.
-- Peça jogada: cada uma das duas notas ocupa 1,5 s (soa 1,5 s e a seguinte
-  começa depois; o Pedro testou 1,8 s). A articulação decide quanto desse
+- Peça jogada: 2 s entre o começo de uma nota e o da seguinte (o Pedro já
+  testou 1,5 s e 1,8 s); o computador espera 5 s, mais que os 4 s das notas. A articulação decide quanto desse
   tempo a nota soa.
 - Carroça toca a nota duas vezes.
 - Pausar ou parar deixa a nota em curso terminar, para evitar estalo.
