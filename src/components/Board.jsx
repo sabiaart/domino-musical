@@ -19,6 +19,35 @@ import {
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
+// Cadeia que passa da área visível (comum no celular): em vez de rolar, a mesa
+// inteira encolhe junto até caber. As peças não mudam de lugar entre si; é só
+// um zoom para longe. Devolve null quando a cadeia já cabe.
+const ZOOM_FOLGA_PX = 6;
+function zoomParaCaber(layout, offsetX, offsetY, largura, altura) {
+  if (!layout.rects || layout.rects.length === 0 || largura <= 0 || altura <= 0) return null;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const r of layout.rects) {
+    minX = Math.min(minX, r.x + offsetX);
+    minY = Math.min(minY, r.y + offsetY);
+    maxX = Math.max(maxX, r.x + r.w + offsetX);
+    maxY = Math.max(maxY, r.y + r.h + offsetY);
+  }
+  if (minX >= 0 && minY >= 0 && maxX <= largura && maxY <= altura) return null;
+  const escala = Math.min(
+    1,
+    (largura - 2 * ZOOM_FOLGA_PX) / (maxX - minX),
+    (altura - 2 * ZOOM_FOLGA_PX) / (maxY - minY),
+  );
+  return {
+    escala,
+    x: (largura - escala * (maxX - minX)) / 2 - escala * minX,
+    y: (altura - escala * (maxY - minY)) / 2 - escala * minY,
+  };
+}
+
 // Silêncio antes da repetição pela tecla R.
 const SILENCIO_ANTES_DA_REPETICAO_MS = 1000;
 
@@ -199,6 +228,7 @@ export default function Board({
     : { cells: [], rects: [], larguraCadeia: 0, alturaCadeia: 0, minX: 0, minY: 0, long: unit * 2 };
   const { offsetX, offsetY, height } = centralizar(layout, area.largura, area.altura);
   const zones = pronto && dropSides ? endZones(layout, offsetX, offsetY, area.largura) : null;
+  const zoom = zoomParaCaber(layout, offsetX, offsetY, area.largura, area.altura);
 
   return (
     <div className="board-area">
@@ -246,7 +276,17 @@ export default function Board({
         </div>
       )}
       <div className="board-scroll" ref={areaRef}>
-        <div className="board" style={{ height: `${Math.max(height, unit * 2.4)}px` }}>
+        <div
+          className="board"
+          style={
+            zoom
+              ? {
+                  height: `${area.altura}px`,
+                  transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.escala})`,
+                }
+              : { height: `${Math.max(height, unit * 2.4)}px` }
+          }
+        >
           {board.length === 0 && <p className="board-empty">A mesa está vazia</p>}
           {layout.cells.map((cell, i) => (
             <div

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Tile from './Tile.jsx';
 
 // Mão do jogador. Duas formas de jogar uma peça destacada:
-// - duplo clique: joga sozinha (se encaixar nas duas pontas, pergunta qual);
+// - duplo clique: joga sozinha (se encaixar nas duas pontas, sempre pergunta qual);
 // - arrastar: leva a peça até a zona de encaixe na ponta da mesa.
 // Peça de notas diferentes que cabe nas duas posições: um balão pergunta se
 // ela entra deitada (horizontal) ou em pé (vertical).
@@ -27,7 +27,9 @@ export default function Hand({
       onCancelOrient();
       return;
     }
-    if (sides.length > 1 && ends && ends.left !== ends.right) {
+    // Encaixa nas duas pontas: sempre pergunta qual, mesmo que as duas pontas
+    // tenham a mesma nota (a peça vai para lugares diferentes da mesa).
+    if (sides.length > 1) {
       setChoosing(choosing === tile.id ? null : tile.id);
       return;
     }

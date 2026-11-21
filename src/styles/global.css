@@ -610,6 +610,10 @@ input[type='text']:focus {
 .board {
   position: relative;
   width: 100%;
+  /* Zoom para caber (ver zoomParaCaber): o canto de cima à esquerda é a origem,
+     e a mudança de escala é suave quando entra uma peça que não cabia. */
+  transform-origin: 0 0;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .board-empty {

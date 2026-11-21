@@ -24,10 +24,16 @@ de trabalho e as decisões que não dá para deduzir do código.
 - O computador joga uma peça válida por sorteio (sem níveis de dificuldade),
   esperando 5 s antes de jogar (as notas da peça anterior soam 3 s).
 - Carroça liga sempre pelo meio e a cadeia nunca vira nela.
+- Cadeia que passa da área da mesa (comum no celular) não rola: a mesa inteira
+  encolhe junto até caber (zoom para longe, `zoomParaCaber` no Board). As peças
+  não mudam de lugar entre si (pedido do Pedro).
 - **Peça já posta nunca muda de lugar nem de forma.** A cadeia nasce da primeira
   peça, no centro, e cresce pelas pontas na ordem das jogadas (`seq`).
 - Peça de notas diferentes: o jogador escolhe horizontal ou vertical, entre as
   posições que não encurralam a ponta.
+- Sempre perguntar quando houver escolha (pedido do Pedro): peça que encaixa nas
+  duas pontas pergunta Esquerda/Direita, mesmo com as duas pontas na mesma nota;
+  e pergunta Horizontal/Vertical quando as duas posições servem.
 - O fim de jogo não cobre a mesa: dá para continuar tocando a cadeia. O resultado
   ocupa o lugar da mão, sem tirar altura da mesa. Os ajustes de som ficam atrás
   do botão "Som", num painel por cima, pelo mesmo motivo (pedido do Pedro).
