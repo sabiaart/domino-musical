@@ -22,7 +22,7 @@ de trabalho e as decisões que não dá para deduzir do código.
 - Começa a carroça mais grave (Dó-Dó, Ré-Ré…). Ninguém com carroça: compram do
   monte, um de cada vez, até aparecer uma.
 - O computador joga uma peça válida por sorteio (sem níveis de dificuldade),
-  esperando 5 s antes de jogar (as notas da peça anterior soam 3 s).
+  esperando 5 s antes de jogar.
 - Carroça liga sempre pelo meio e a cadeia nunca vira nela.
 - Cadeia que passa da área da mesa (comum no celular) não rola: a mesa inteira
   encolhe junto até caber (zoom para longe, `zoomParaCaber` no Board). As peças
@@ -48,8 +48,8 @@ de trabalho e as decisões que não dá para deduzir do código.
   durante a partida.
 - Prioridade: o intervalo entre as duas notas da mesma peça sempre segue o modo;
   entre peças, a oitava pode mudar para manter isso.
-- Peça jogada: 2 s entre o começo de uma nota e o da seguinte (o Pedro já
-  testou 1,5 s e 1,8 s); o computador espera 5 s, mais que os 4 s das notas. A articulação decide quanto desse
+- Peça jogada: 1,2 s entre o começo de uma nota e o da seguinte (o Pedro já
+  testou 1 s, 1,5 s, 1,8 s e 2 s); o computador espera 5 s antes da peça seguinte. A articulação decide quanto desse
   tempo a nota soa.
 - Carroça toca a nota duas vezes.
 - Pausar ou parar deixa a nota em curso terminar, para evitar estalo.
