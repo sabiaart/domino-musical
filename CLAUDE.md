@@ -81,16 +81,16 @@ de trabalho e as decisões que não dá para deduzir do código.
   não para a prévia do mouse. Já houve Normal (nota sumindo em até 1,2 s) e um
   Legato de 90%, retirados.
 - Timbre: Clarinete (padrão), Violoncelo, Harpa celta (resgatada a
-  pedido do Pedro), Órgão de igreja (`orgao`) e Piano de concerto (`piano`). A harpa e o piano não sustentam: vai morrendo desde o toque, e a
+  pedido do Pedro), Órgão de tubos (`orgao`) e Piano digital (`pianoDigital`, som de teclado elétrico por FM; entrou a pedido do Pedro no lugar do piano de concerto e depois da celesta, que nos graves soava como ruído). A harpa e o piano digital não sustentam: vai morrendo desde o toque, e a
   articulação decide quando a corda é abafada (até 4 s no legato). No código, o id do
   clarinete continua `madeiras`, para não perder a escolha salva. São sintetizados, não gravações, e valem também para a prévia
-  do mouse. Harpa e piano são cordas calculadas nota a nota (`sintese.js`:
-  Karplus-Strong e harmônicos de corda de aço), guardadas e pré-calculadas ao
+  do mouse. Harpa e piano digital são calculados nota a nota (`sintese.js`:
+  Karplus-Strong e FM), guardadas e pré-calculadas ao
   abrir o som; clarinete, violoncelo e órgão têm harmônicos próprios, ruído de
   sopro/arco/vento e filtro que abre no ataque. Todos têm eco de sala (maior no
   órgão). Picos calibrados perto de 0,9 em toda a extensão. Já foram testados e retirados a pedido do Pedro: Simples, cordas,
   guitarra elétrica, trompete, trombone, flautas de bambu e de
-  madeira, marimba, violino e voz.
+  madeira, marimba, violino, voz, piano de concerto e celesta.
 
 ## Celular
 
@@ -99,7 +99,11 @@ de trabalho e as decisões que não dá para deduzir do código.
 - Para sobrar mesa (pedido do Pedro): sem a frase de instrução embaixo da mão,
   cabeçalho em pé numa linha só (o placar mostra só o monte), e o Sair fica
   pequeno no canto de cima à direita, fora da fila dos botões.
-- Escolha Esquerda/Direita e Horizontal/Vertical: no meio da mesa e menor.
+- Escolha Esquerda/Direita e Horizontal/Vertical: botões médios embaixo da
+  mesa, no meio (portal em `#escolha-jogada`, no Board), numa faixa de 40 px
+  que a cadeia nunca ocupa (`FAIXA_ESCOLHA_PX`), para não tapar peça nenhuma.
+  Pedido do Pedro; já estiveram no meio da mesa, acima da peça da mão, ao lado
+  e abaixo do "Sua vez!" e no alto da mesa.
 - O painel de Som fica preso logo acima dos botões (no tablet cobria a fila de
   cima); no celular deitado continua preso à coluna da direita.
 

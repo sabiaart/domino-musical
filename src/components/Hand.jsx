@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import Tile from './Tile.jsx';
 
 // Mão do jogador. Duas formas de jogar uma peça destacada:
@@ -45,6 +46,13 @@ export default function Hand({
 
   const hasPlayable = myTurn && Object.keys(playable).length > 0;
 
+  // As escolhas (ponta, posição) aparecem embaixo da mesa, no meio, numa faixa
+  // onde as peças não entram: não tapam nada (pedido do Pedro).
+  const noAviso = (conteudo) => {
+    const alvo = document.getElementById('escolha-jogada');
+    return alvo ? createPortal(conteudo, alvo) : conteudo;
+  };
+
   return (
     <div className="hand-area">
       <div className="hand" data-my-turn={myTurn}>
@@ -53,7 +61,7 @@ export default function Hand({
           const isPlayable = myTurn && sides.length > 0;
           return (
             <div key={tile.id} className={`hand-slot ${draggingId === tile.id ? 'dragging' : ''}`}>
-              {pendingOrient?.tileId === tile.id && (
+              {pendingOrient?.tileId === tile.id && noAviso(
                 <div className="side-chooser" role="group" aria-label="Escolha a posição">
                   {/* Com a mesa girada de lado, o que é deitado na cadeia aparece em pé na tela. */}
                   {['horizontal', 'vertical']
@@ -62,18 +70,22 @@ export default function Hand({
                     .sort((x, y) => (x.naTela === 'horizontal' ? 0 : 1) - (y.naTela === 'horizontal' ? 0 : 1))
                     .map(({ o, naTela }) => (
                       <button key={o} type="button" onClick={() => onChooseOrient(o)}>
-                        {naTela === 'horizontal' ? '▬ Horizontal' : '▮ Vertical'}
+                        {naTela === 'horizontal' ? (
+                          <><span className="sinal">▬</span> Horizontal</>
+                        ) : (
+                          <><span className="sinal">▮</span> Vertical</>
+                        )}
                       </button>
                     ))}
                 </div>
               )}
-              {choosing === tile.id && (
+              {choosing === tile.id && noAviso(
                 <div className="side-chooser" role="group" aria-label="Escolha a ponta">
                   <button type="button" onClick={() => chooseSide(tile.id, 'left')}>
-                    ◀ Esquerda
+                    <span className="sinal">◀</span> Esquerda
                   </button>
                   <button type="button" onClick={() => chooseSide(tile.id, 'right')}>
-                    Direita ▶
+                    Direita <span className="sinal">▶</span>
                   </button>
                 </div>
               )}

@@ -1,9 +1,8 @@
 // Peças de síntese usadas pelos timbres (ver VOZES em sound.js).
 //
-// - Cordas pinçadas e percutidas (harpa, piano) são calculadas amostra por
-//   amostra uma vez por nota e guardadas: a harpa é uma corda simulada
-//   (Karplus-Strong) e o piano soma os harmônicos de uma corda de aço, que são
-//   levemente desafinados para cima e morrem cada um no seu tempo.
+// - Harpa e piano digital são calculados amostra por amostra uma vez por nota
+//   e guardados: a harpa é uma corda simulada (Karplus-Strong) e o piano
+//   digital é FM, como nos teclados elétricos clássicos.
 // - Sala: um eco curto, comum a todas as notas, para o som não ficar "seco".
 // - Ruído: sopro do clarinete, arco do violoncelo e o "chiff" dos tubos.
 
@@ -147,64 +146,43 @@ export function renderHarpa(sr, freq, segundos) {
   return normalizar(out);
 }
 
-// Corda de piano: soma dos harmônicos de uma corda rígida (cada um um pouco
-// acima do múltiplo exato), mais fortes conforme o ponto onde o martelo bate.
-// Cada harmônico tem uma queda rápida e uma longa, e as cordas do mesmo coro,
-// quase afinadas, fazem o som ondular de leve. O martelo dá um baque curto.
-export function renderPiano(sr, freq, segundos) {
-  const t60 = 10 * Math.pow(98 / freq, 0.75); // ~10 s no Sol 1, ~1,7 s no Dó 5
+// Piano digital: o som dos teclados elétricos clássicos, feito por FM (uma
+// onda modulando a frequência da outra). O corpo é uma portadora na nota com
+// um modulador na mesma frequência: o brilho (índice) começa alto e vai
+// fechando, e o som fica redondo. Um segundo modulador, bem agudo e curto, dá
+// o "plim" metálico do ataque. Graves duram mais que agudos.
+export function renderPianoDigital(sr, freq, segundos) {
+  const t60 = 7 * Math.pow(98 / freq, 0.45); // ~7 s no Sol 1, ~2,4 s no Dó 5
   const n = Math.ceil(sr * Math.min(segundos, t60 * 0.9));
   const out = new Float32Array(n);
-  const B = 0.0003 * Math.pow(freq / 98, 1.1);
-  const maxHz = Math.min(sr * 0.45, 9000);
-  for (let k = 1; k <= 64; k++) {
-    const fk = k * freq * Math.sqrt(1 + B * k * k);
-    if (fk > maxHz) break;
-    const amp =
-      (Math.abs(Math.sin(Math.PI * k * 0.12)) / Math.pow(k, 0.85)) *
-      Math.exp(-fk / (3000 + freq * 3));
-    if (amp < 1e-4) continue;
-    const longa = t60 / 6.91 / (1 + fk / 1800);
-    const curta = longa * 0.15;
-    // Batimento entre as cordas do coro: ~0,5 a 1,5 centésimo.
-    const bat = fk * (0.0003 + Math.random() * 0.0006);
-    const w = (2 * Math.PI * fk) / sr;
-    const wb = (2 * Math.PI * bat) / sr;
-    const c2 = 2 * Math.cos(w);
-    const cb2 = 2 * Math.cos(wb);
-    let s1 = 0;
-    let s0 = Math.sin(-w); // seno começa em zero: sem estalo
-    const fase = Math.random() * Math.PI * 2;
-    let b1 = Math.cos(fase);
-    let b0 = Math.cos(fase - wb);
-    let e1 = 0.6 * amp;
-    let e2 = 0.4 * amp;
-    const d1 = Math.exp(-1 / (sr * curta));
-    const d2 = Math.exp(-1 / (sr * longa));
-    for (let i = 0; i < n; i++) {
-      const s = c2 * s1 - s0;
-      s0 = s1;
-      s1 = s;
-      const b = cb2 * b1 - b0;
-      b0 = b1;
-      b1 = b;
-      out[i] += s * (e1 + e2) * (1 - 0.35 + 0.35 * b);
-      e1 *= d1;
-      e2 *= d2;
-      if (e1 + e2 < 1e-5 * amp) break;
-    }
-  }
-  // Baque do martelo e do tampo: ruído grave e curtíssimo.
-  const baque = Math.min(n, Math.floor(sr * 0.03));
-  let lp = 0;
-  for (let i = 0; i < baque; i++) {
-    lp += 0.08 * (Math.random() * 2 - 1 - lp);
-    out[i] += lp * 0.6 * Math.exp(-i / (sr * 0.006));
+  const dt = 1 / sr;
+  const tauAmp = t60 / 6.91;
+  // Brilho menor nos agudos, para não ficar estridente.
+  const brilho = 1.6 * Math.pow(98 / freq, 0.15);
+  const tauBrilho = 0.35;
+  const plimHz = Math.min(freq * 14, sr * 0.4);
+  const tauPlim = 0.02;
+  let fase = 0;
+  let faseMod = 0;
+  let fasePlim = 0;
+  const w = 2 * Math.PI * freq * dt;
+  const wPlim = 2 * Math.PI * plimHz * dt;
+  for (let i = 0; i < n; i++) {
+    const t = i * dt;
+    const indice = 0.25 + brilho * Math.exp(-t / tauBrilho);
+    const plim = 0.9 * Math.exp(-t / tauPlim);
+    const mod = indice * Math.sin(faseMod) + plim * Math.sin(fasePlim);
+    // Entrada de 2 ms, para o toque não estalar.
+    const entrada = Math.min(1, t / 0.002);
+    out[i] = entrada * Math.exp(-t / tauAmp) * Math.sin(fase + mod);
+    fase += w;
+    faseMod += w;
+    fasePlim += wPlim;
   }
   return normalizar(out);
 }
 
-const RENDER = { harpa: renderHarpa, piano: renderPiano };
+const RENDER = { harpa: renderHarpa, pianoDigital: renderPianoDigital };
 
 // Corda já calculada para esta nota (calcula e guarda na primeira vez).
 export function corda(audio, tipo, freq, segundos) {

@@ -147,7 +147,7 @@ export function articularNota(articulacao, gap) {
 // Timbre: instrumentos sintetizados na hora (não são gravações). Clarinete,
 // violoncelo e órgão somam ondas com os harmônicos de cada instrumento, um
 // filtro que imita o corpo (e abre no ataque) e o ruído do sopro, do arco ou
-// do vento nos tubos. Harpa e piano são cordas calculadas amostra por amostra
+// do vento nos tubos. Harpa e piano digital são calculados amostra por amostra
 // (ver sintese.js). Todos passam por um eco de sala, maior no órgão.
 const TIMBRE_KEY = 'domino.timbre';
 const DEFAULT_TIMBRE = 'madeiras';
@@ -208,7 +208,7 @@ const VOZES = {
     sala: 0.28,
     nivel: 1,
   },
-  // Órgão de igreja: registros somados (16', 8', 4', 2 2/3', 2' e um fio de
+  // Órgão de tubos: registros somados (16', 8', 4', 2 2/3', 2' e um fio de
   // mistura), cada um um tico fora do outro, como tubos de verdade; o vento dá
   // um "chiff" quando o tubo fala; volume constante enquanto a tecla está
   // apertada, sem vibrato, numa igreja que ecoa.
@@ -228,14 +228,14 @@ const VOZES = {
     sala: 0.5,
     nivel: 0.7,
   },
-  // Piano de concerto: martelo na corda de aço. Como a harpa, a articulação
-  // decide quando o abafador cai.
-  piano: {
+  // Piano digital (pedido do Pedro, no lugar da celesta, que nos graves soava
+  // como ruído). Como a harpa, a articulação decide quando o som é abafado.
+  pianoDigital: {
     ataque: 0.002,
     percussivo: true,
-    corda: 'piano',
+    corda: 'pianoDigital',
     abafa: 0.1,
-    sala: 0.22,
+    sala: 0.3,
     nivel: 1,
   },
 };

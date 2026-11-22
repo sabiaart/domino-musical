@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { envelopeDaVoz, TIMBRES } from '../sound.js';
-import { renderHarpa, renderPiano } from '../sintese.js';
+import { renderHarpa, renderPianoDigital } from '../sintese.js';
 
 describe('envelopeDaVoz', () => {
   it('existem os cinco timbres', () => {
-    expect(TIMBRES).toEqual(['madeiras', 'violoncelo', 'harpa', 'orgao', 'piano']);
+    expect(TIMBRES).toEqual(['madeiras', 'violoncelo', 'harpa', 'orgao', 'pianoDigital']);
   });
 
   it('o ataque nunca toma a nota inteira, mesmo a mais curta', () => {
@@ -66,7 +66,7 @@ describe('cordas calculadas', () => {
 
   for (const [nome, render] of [
     ['harpa', renderHarpa],
-    ['piano', renderPiano],
+    ['piano digital', renderPianoDigital],
   ]) {
     it(`${nome}: afinada, sem passar de 1 e morrendo com o tempo`, () => {
       for (const f of [98, 261.63, 1046.52]) {

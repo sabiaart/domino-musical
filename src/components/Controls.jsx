@@ -16,8 +16,8 @@ const TIMBRES = [
   { id: 'madeiras', label: 'Clarinete' },
   { id: 'violoncelo', label: 'Violoncelo' },
   { id: 'harpa', label: 'Harpa celta' },
-  { id: 'orgao', label: 'Órgão de igreja' },
-  { id: 'piano', label: 'Piano de concerto' },
+  { id: 'orgao', label: 'Órgão de tubos' },
+  { id: 'pianoDigital', label: 'Piano digital' },
 ];
 
 // Botões de ação: comprar (só sem jogada e com monte), passar (só sem jogada

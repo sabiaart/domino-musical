@@ -27,9 +27,9 @@ direito, **⟲** e **⟳** giram o desenho da mesa 90° para a esquerda ou para 
 a cadeia; com nada tocando, toca a mesa inteira desde a primeira ponta. A tecla **R**
 repete do começo o último trecho tocado, depois de 1 s de silêncio. O seletor **Articulação** tem
 **Staccato** (notas curtas), **Desligado** (pouco ligadas; padrão) e **Legato**
-(totalmente ligadas: cada nota segura o volume até a seguinte entrar), inclusive na harpa e no piano, que abafam a corda conforme a escolha.
+(totalmente ligadas: cada nota segura o volume até a seguinte entrar), inclusive na harpa e no piano digital, que abafam o som conforme a escolha.
 O seletor **Timbre** troca o instrumento: Clarinete (padrão),
-Violoncelo, Harpa celta, Órgão de igreja ou Piano de concerto, todos sintetizados no navegador.
+Violoncelo, Harpa celta, Órgão de tubos ou Piano digital, todos sintetizados no navegador.
 As notas soam entre o Sol 1 e o Dó 5 (com o Dó central do piano como Dó 3;
 de 98 Hz a 1046 Hz), e o seletor
 **Intervalos** (que pode ser trocado durante a partida) decide o salto entre

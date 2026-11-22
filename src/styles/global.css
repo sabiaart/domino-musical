@@ -793,18 +793,19 @@ input[type='text']:focus {
   margin: 6px;
 }
 
+/* Escolha de ponta e de posição: pequena, logo acima da peça escolhida, para
+   cobrir o mínimo da mesa (pedido do Pedro). */
 .side-chooser {
   position: absolute;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 3px);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 6px;
+  gap: 4px;
   z-index: 30;
-  background: rgba(0, 0, 0, 0.9);
-  padding: 6px;
-  border-radius: 8px;
-  box-shadow: var(--shadow);
+  background: rgba(0, 0, 0, 0.75);
+  padding: 2px;
+  border-radius: 6px;
   white-space: nowrap;
 }
 
@@ -813,9 +814,34 @@ input[type='text']:focus {
   background: var(--accent);
   color: var(--ink);
   font-weight: 700;
-  border-radius: 6px;
-  padding: 6px 10px;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  border-radius: 5px;
+  padding: 4px 9px;
   cursor: pointer;
+}
+
+/* Embaixo da mesa, no meio, na faixa onde as peças não entram. */
+.escolha-jogada {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.escolha-jogada .side-chooser {
+  position: static;
+  transform: none;
+  pointer-events: auto;
+}
+
+.side-chooser .sinal {
+  font-size: 0.7em;
 }
 
 .side-chooser button:hover {
@@ -1100,21 +1126,6 @@ input[type='text']:focus {
     z-index: 20;
   }
 
-  /* Escolha de ponta e de posição: no meio da tela e menor. */
-  .side-chooser {
-    position: fixed;
-    top: 45%;
-    bottom: auto;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    gap: 4px;
-    padding: 4px;
-  }
-
-  .side-chooser button {
-    padding: 5px 8px;
-    font-size: 0.8rem;
-  }
 
   .scoreboard {
     min-width: 0;
@@ -1175,6 +1186,16 @@ input[type='text']:focus {
   .chain-transport.giro {
     left: auto;
     right: 16px;
+  }
+
+  .escolha-jogada {
+    bottom: 6px;
+  }
+
+  /* Cabe entre os botões dos dois cantos. */
+  .side-chooser button {
+    font-size: 0.8rem;
+    padding: 4px 6px;
   }
 
   .chain-transport button {
@@ -1435,20 +1456,6 @@ input[type='text']:focus {
   }
 
 
-  .side-chooser {
-    position: fixed;
-    top: 45%;
-    bottom: auto;
-    left: 40%;
-    transform: translate(-50%, -50%);
-    gap: 4px;
-    padding: 4px;
-  }
-
-  .side-chooser button {
-    padding: 5px 8px;
-    font-size: 0.8rem;
-  }
 
   /* Celular: play/pause/stop menores e mais discretos (pedido do Pedro). */
   .chain-transport {
@@ -1462,6 +1469,10 @@ input[type='text']:focus {
   .chain-transport.giro {
     left: auto;
     right: 8px;
+  }
+
+  .escolha-jogada {
+    bottom: 8px;
   }
 
   .chain-transport button {

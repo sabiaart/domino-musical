@@ -69,6 +69,10 @@ function inverteMetades(giro, vertical) {
   return false;
 }
 
+// Faixa livre embaixo da mesa, onde aparecem as escolhas da jogada (ponta,
+// posição): as peças nunca entram nela, então a escolha não tapa nenhuma.
+const FAIXA_ESCOLHA_PX = 40;
+
 // Silêncio antes da repetição pela tecla R.
 const SILENCIO_ANTES_DA_REPETICAO_MS = 1000;
 
@@ -110,10 +114,10 @@ export default function Board({
     if (!el) return;
     const observer = new ResizeObserver(([entrada]) => {
       const r = entrada.contentRect;
-      setArea({ largura: r.width, altura: r.height });
+      setArea({ largura: r.width, altura: Math.max(0, r.height - FAIXA_ESCOLHA_PX) });
     });
     observer.observe(el);
-    setArea({ largura: el.clientWidth, altura: el.clientHeight });
+    setArea({ largura: el.clientWidth, altura: Math.max(0, el.clientHeight - FAIXA_ESCOLHA_PX) });
     return () => observer.disconnect();
   }, []);
 
@@ -323,6 +327,9 @@ export default function Board({
           </button>
         </div>
       )}
+      {/* Escolhas da jogada (ponta, posição): embaixo da mesa, no meio, numa
+          faixa onde as peças não entram (a mão as coloca aqui). */}
+      <div id="escolha-jogada" className="escolha-jogada" />
       {/* Girar a mesa: no canto superior direito (pedido do Pedro). */}
       {board.length > 0 && onGirar && (
         <div className="chain-transport giro" role="group" aria-label="Girar a mesa">
