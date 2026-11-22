@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { envelopeDaVoz, TIMBRES } from '../sound.js';
+import { renderHarpa, renderPiano } from '../sintese.js';
 
 describe('envelopeDaVoz', () => {
   it('existem os cinco timbres', () => {
@@ -37,4 +38,45 @@ describe('legato', () => {
       expect(ataque).toBeLessThanOrEqual(0.06);
     }
   });
+});
+
+describe('cordas calculadas', () => {
+  const sr = 48000;
+  // Período pela autocorrelação: o atraso, perto do esperado, em que a onda
+  // mais se parece com ela mesma.
+  function freqMedida(d, inicio, esperado) {
+    const P = sr / esperado;
+    let melhor = 0;
+    let lag = 0;
+    for (let l = Math.floor(P * 0.9); l <= Math.ceil(P * 1.1); l++) {
+      let s = 0;
+      for (let i = inicio; i < inicio + 4096; i++) s += d[i] * d[i + l];
+      if (s > melhor) {
+        melhor = s;
+        lag = l;
+      }
+    }
+    return sr / lag;
+  }
+  function energia(d, de, ate) {
+    let s = 0;
+    for (let i = de; i < ate; i++) s += d[i] * d[i];
+    return s / (ate - de);
+  }
+
+  for (const [nome, render] of [
+    ['harpa', renderHarpa],
+    ['piano', renderPiano],
+  ]) {
+    it(`${nome}: afinada, sem passar de 1 e morrendo com o tempo`, () => {
+      for (const f of [98, 261.63, 1046.52]) {
+        const d = render(sr, f, 4.1);
+        expect(d.every(Number.isFinite)).toBe(true);
+        expect(d.reduce((m, x) => Math.max(m, Math.abs(x)), 0)).toBeCloseTo(1, 5);
+        // erro de no máximo ~1 amostra de período
+        expect(Math.abs(freqMedida(d, 2000, f) - f) / f).toBeLessThan(0.025);
+        expect(energia(d, sr, sr + 4800)).toBeLessThan(energia(d, 1000, 5800));
+      }
+    });
+  }
 });

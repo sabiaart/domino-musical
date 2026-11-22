@@ -84,7 +84,11 @@ de trabalho e as decisões que não dá para deduzir do código.
   pedido do Pedro), Órgão de igreja (`orgao`) e Piano de concerto (`piano`). A harpa e o piano não sustentam: vai morrendo desde o toque, e a
   articulação decide quando a corda é abafada (até 4 s no legato). No código, o id do
   clarinete continua `madeiras`, para não perder a escolha salva. São sintetizados, não gravações, e valem também para a prévia
-  do mouse. Já foram testados e retirados a pedido do Pedro: Simples, cordas,
+  do mouse. Harpa e piano são cordas calculadas nota a nota (`sintese.js`:
+  Karplus-Strong e harmônicos de corda de aço), guardadas e pré-calculadas ao
+  abrir o som; clarinete, violoncelo e órgão têm harmônicos próprios, ruído de
+  sopro/arco/vento e filtro que abre no ataque. Todos têm eco de sala (maior no
+  órgão). Picos calibrados perto de 0,9 em toda a extensão. Já foram testados e retirados a pedido do Pedro: Simples, cordas,
   guitarra elétrica, trompete, trombone, flautas de bambu e de
   madeira, marimba, violino e voz.
 

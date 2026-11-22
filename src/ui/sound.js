@@ -7,7 +7,10 @@ import {
   posFreq,
   INTERVAL_MODES,
   DEFAULT_INTERVAL_MODE,
+  RANGE_MIN_HZ,
+  RANGE_MAX_HZ,
 } from '../game/notes.js';
+import { aquecerCordas, corda, ondaPeriodica, ruido, sala } from './sintese.js';
 
 const MUTE_KEY = 'domino.muted';
 const INTERVAL_KEY = 'domino.intervalos';
@@ -141,76 +144,99 @@ export function articularNota(articulacao, gap) {
   return { duration: gap * DESLIGADO_FRACAO, sustain: true };
 }
 
-// Timbre: famílias de instrumentos sintetizadas na hora (não são gravações).
-// Cada voz combina camadas de osciladores, um filtro que corta os agudos, em
-// múltiplos da frequência da nota, e às vezes vibrato.
+// Timbre: instrumentos sintetizados na hora (não são gravações). Clarinete,
+// violoncelo e órgão somam ondas com os harmônicos de cada instrumento, um
+// filtro que imita o corpo (e abre no ataque) e o ruído do sopro, do arco ou
+// do vento nos tubos. Harpa e piano são cordas calculadas amostra por amostra
+// (ver sintese.js). Todos passam por um eco de sala, maior no órgão.
 const TIMBRE_KEY = 'domino.timbre';
 const DEFAULT_TIMBRE = 'madeiras';
-// Corda pinçada (harpa): o som não sustenta, vai morrendo desde o toque; a
-// articulação decide quando a corda é abafada (staccato logo, desligado antes
-// da seguinte, legato só quando a seguinte soa).
+// Corda pinçada ou percutida: o som não sustenta, vai morrendo desde o toque;
+// a articulação decide quando a corda é abafada (staccato logo, desligado
+// antes da seguinte, legato só quando a seguinte soa).
 const PERCUSSAO_MAX_S = 4;
+const ONDA_PRINCIPAL = [1, 0.45, 0.25, 0.18, 0.1, 0.07, 0.05, 0.03];
 const VOZES = {
+  // Clarinete: tubo fechado numa ponta, por isso quase só harmônicos ímpares;
+  // a palheta abre o brilho no ataque, a nota chega um tico baixa e se firma,
+  // e por baixo há um fio de sopro. Quase sem vibrato, como no clássico.
   madeiras: {
     ataque: 0.04,
-    camadas: [{ tipo: 'square', ganho: 0.7 }],
-    filtro: { inicio: 4 },
-    vibrato: { hz: 4.5, cents: 5, atraso: 0.3 },
+    camadas: [
+      {
+        onda: 'clarinete',
+        harmonicos: [1, 0.04, 0.62, 0.03, 0.42, 0.04, 0.27, 0.03, 0.17, 0.03, 0.1, 0.02, 0.06, 0.02, 0.04],
+      },
+    ],
+    filtro: { de: 2, ate: 7, maxHz: 4200, abre: 0.07 },
+    entrada: { cents: -10, tempo: 0.06 },
+    sopro: { hz: 2400, q: 0.8, ganho: 0.02, ataque: 0.07 },
+    vibrato: { hz: 4.8, cents: 3, atraso: 0.5 },
+    sala: 0.22,
+    nivel: 0.85,
   },
-  // Corda friccionada: duas ondas ricas levemente desafinadas (o arco nunca é
-  // perfeitamente estável), entrada lenta, agudos cortados pela caixa de
-  // madeira e vibrato largo que aparece depois do início da nota.
+  // Violoncelo: o arco arrasta a corda em dente de serra; duas ondas levemente
+  // desafinadas, o ruído do arco mordendo no começo, as ressonâncias da caixa
+  // de madeira e um vibrato largo que entra depois do início da nota.
   violoncelo: {
     ataque: 0.1,
     camadas: [
-      { tipo: 'sawtooth', detune: -5, ganho: 0.5 },
-      { tipo: 'sawtooth', detune: 5, ganho: 0.5 },
+      { tipo: 'sawtooth', detune: -4, ganho: 0.5 },
+      { tipo: 'sawtooth', detune: 4, ganho: 0.5 },
     ],
-    filtro: { inicio: 5 },
-    vibrato: { hz: 5.5, cents: 12, atraso: 0.2 },
+    filtro: { de: 3, ate: 10, maxHz: 5000, abre: 0.15 },
+    corpo: [
+      { hz: 110, q: 1.4, db: 2 },
+      { hz: 230, q: 2, db: 3 },
+      { hz: 460, q: 1.8, db: 2 },
+      { hz: 1600, q: 1, db: -2 },
+    ],
+    entrada: { cents: -6, tempo: 0.08 },
+    sopro: { hz: 1800, q: 0.7, ganho: 0.01, ataque: 0.06 },
+    vibrato: { hz: 5.3, cents: 14, atraso: 0.25 },
+    sala: 0.25,
+    nivel: 0.95,
+    // A caixa reforça os graves: o agudo sobe um pouco para ficar no mesmo volume.
+    inclinacao: 0.2,
   },
-  // Corda pinçada: ataque seco, som quente, e os harmônicos agudos somem antes
-  // da nota. Morre sozinha.
+  // Harpa celta: corda de náilon pinçada pelo dedo. Morre sozinha.
   harpa: {
-    ataque: 0.004,
+    ataque: 0.002,
     percussivo: true,
-    camadas: [
-      { tipo: 'triangle', ganho: 1 },
-      { tipo: 'sine', multiplo: 2, ganho: 0.33, decai: 0.5 },
-      { tipo: 'sine', multiplo: 3, ganho: 0.16, decai: 0.2 },
-    ],
-    filtro: { inicio: 5 },
+    corda: 'harpa',
+    abafa: 0.12,
+    sala: 0.28,
+    nivel: 1,
   },
-  // Órgão de igreja: tubos somados (fundamental, oitavas e quinta, como os
-  // registros), volume constante enquanto a tecla está apertada, sem vibrato.
+  // Órgão de igreja: registros somados (16', 8', 4', 2 2/3', 2' e um fio de
+  // mistura), cada um um tico fora do outro, como tubos de verdade; o vento dá
+  // um "chiff" quando o tubo fala; volume constante enquanto a tecla está
+  // apertada, sem vibrato, numa igreja que ecoa.
   orgao: {
     ataque: 0.05,
     camadas: [
-      { tipo: 'sine', multiplo: 0.5, ganho: 0.3 },
-      { tipo: 'sine', ganho: 0.5 },
-      { tipo: 'sine', multiplo: 2, ganho: 0.33 },
-      { tipo: 'sine', multiplo: 3, ganho: 0.22 },
-      { tipo: 'sine', multiplo: 4, ganho: 0.18 },
-      { tipo: 'sine', multiplo: 8, ganho: 0.08 },
+      { onda: 'bordao', harmonicos: [1, 0, 0.12, 0, 0.04], multiplo: 0.5, ganho: 0.32, detune: -1.5 },
+      { onda: 'principal', harmonicos: ONDA_PRINCIPAL, ganho: 0.5 },
+      { onda: 'principal', harmonicos: ONDA_PRINCIPAL, multiplo: 2, ganho: 0.3, detune: 1.5 },
+      { tipo: 'sine', multiplo: 3, ganho: 0.13, detune: -1 },
+      { onda: 'principal', harmonicos: ONDA_PRINCIPAL, multiplo: 4, ganho: 0.13, detune: 2 },
+      { tipo: 'sine', multiplo: 8, ganho: 0.05, detune: -2 },
     ],
-    filtro: { inicio: 10 },
+    filtro: { de: 12, ate: 12, maxHz: 7000 },
+    sopro: { multiplo: 4, q: 2, ganho: 0.004, ataque: 0.08 },
     plano: true,
+    sala: 0.5,
+    nivel: 0.7,
   },
-  // Piano de concerto: martelo na corda, ataque imediato, brilho que some logo
-  // e corpo que vai morrendo devagar. Como a harpa, a articulação decide
-  // quando o abafador cai.
+  // Piano de concerto: martelo na corda de aço. Como a harpa, a articulação
+  // decide quando o abafador cai.
   piano: {
-    ataque: 0.003,
+    ataque: 0.002,
     percussivo: true,
-    camadas: [
-      { tipo: 'triangle', ganho: 0.55 },
-      { tipo: 'sine', ganho: 0.3 },
-      { tipo: 'sine', multiplo: 2, ganho: 0.3, decai: 1.2 },
-      { tipo: 'sine', multiplo: 3, ganho: 0.15, decai: 0.5 },
-      { tipo: 'sine', multiplo: 5, ganho: 0.06, decai: 0.15 },
-      { tipo: 'sine', multiplo: 2.003, detune: 4, ganho: 0.12, decai: 2.5 },
-    ],
-    filtro: { inicio: 8 },
+    corda: 'piano',
+    abafa: 0.1,
+    sala: 0.22,
+    nivel: 1,
   },
 };
 export const TIMBRES = Object.keys(VOZES);
@@ -237,6 +263,24 @@ export function setTimbre(timbre) {
   } catch {
     // vale só nesta sessão da página
   }
+  if (ctx) aquecerTimbre(ctx, timbre);
+}
+
+// Todas as alturas que o jogo toca.
+function frequenciasDoJogo() {
+  const fs = [];
+  for (let pos = 0; pos < 70; pos++) {
+    const f = posFreq(pos);
+    if (f >= RANGE_MIN_HZ - 0.5 && f <= RANGE_MAX_HZ + 0.5) fs.push(f);
+  }
+  return fs;
+}
+
+// As cordas são calculadas antes de serem pedidas, para a primeira nota não
+// atrasar.
+function aquecerTimbre(audio, timbre) {
+  const voz = VOZES[timbre];
+  if (voz?.corda) aquecerCordas(audio, voz.corda, frequenciasDoJogo(), PERCUSSAO_MAX_S + 0.1);
 }
 
 // Ajusta o pedido da articulação ao que o timbre consegue fazer. O ataque
@@ -254,64 +298,127 @@ export function envelopeDaVoz(timbre, duration, sustain, legato = false) {
   };
 }
 
-// Agenda uma nota no instante `t` e devolve os osciladores criados.
+// Agenda uma nota no instante `t` e devolve as fontes de som criadas.
 export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, legato, timbre }) {
   const voz = VOZES[timbre];
   const env = envelopeDaVoz(timbre, duration, sustain, legato);
   const fim = t + env.duration;
+  const pico = volume * (voz.nivel ?? 1) * (freq / 261.63) ** (voz.inclinacao ?? 0);
 
   const gain = audio.createGain();
   gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(volume, t + env.ataque);
+  gain.gain.linearRampToValueAtTime(pico, t + env.ataque);
   if (env.legato || (env.sustain && voz.plano)) {
     // Volume cheio até o fim; só a troca final, curta.
     const queda = Math.min(env.legato ? LEGATO_EMENDA_S : LEGATO_RELEASE_S, env.duration * 0.3);
-    gain.gain.setValueAtTime(volume, fim - queda);
+    gain.gain.setValueAtTime(pico, fim - queda);
   } else if (env.sustain) {
     // Em andamento rápido a nota é curta: a queda encolhe junto com ela.
     const queda = Math.min(LEGATO_RELEASE_S, env.duration * 0.4);
-    gain.gain.exponentialRampToValueAtTime(volume * LEGATO_SUSTENTACAO, fim - queda);
+    gain.gain.exponentialRampToValueAtTime(pico * LEGATO_SUSTENTACAO, fim - queda);
+  } else if (voz.percussivo) {
+    // A corda morre sozinha; o abafador só cai no fim.
+    const queda = Math.min(voz.abafa, env.duration * 0.4);
+    gain.gain.setValueAtTime(pico, Math.max(t + env.ataque, fim - queda));
   }
   gain.gain.exponentialRampToValueAtTime(0.001, fim);
   gain.connect(destino);
+  if (voz.sala) {
+    const envio = audio.createGain();
+    envio.gain.value = voz.sala;
+    gain.connect(envio).connect(sala(audio, destino));
+  }
+  const parar = fim + 0.05;
 
+  if (voz.corda) {
+    const fonte = audio.createBufferSource();
+    fonte.buffer = corda(audio, voz.corda, freq, PERCUSSAO_MAX_S + 0.1);
+    fonte.connect(gain);
+    fonte.start(t);
+    fonte.stop(parar);
+    return [fonte];
+  }
+
+  // Corpo do instrumento: ressonâncias fixas, em hertz.
   let entrada = gain;
+  for (const r of voz.corpo ?? []) {
+    const f = audio.createBiquadFilter();
+    f.type = 'peaking';
+    f.frequency.value = r.hz;
+    f.Q.value = r.q;
+    f.gain.value = r.db;
+    f.connect(entrada);
+    entrada = f;
+  }
+  // Brilho: o filtro abre durante o ataque, como a palheta ou o arco pegando.
   if (voz.filtro) {
     const filtro = audio.createBiquadFilter();
     filtro.type = 'lowpass';
     filtro.Q.value = 0.7;
-    filtro.frequency.setValueAtTime(freq * voz.filtro.inicio, t);
-    filtro.connect(gain);
+    const aberto = Math.min(freq * voz.filtro.ate, voz.filtro.maxHz);
+    filtro.frequency.setValueAtTime(Math.min(freq * voz.filtro.de, aberto), t);
+    if (voz.filtro.abre) {
+      filtro.frequency.exponentialRampToValueAtTime(aberto, t + Math.min(voz.filtro.abre, env.duration * 0.5));
+    }
+    filtro.connect(entrada);
     entrada = filtro;
   }
 
-  const oscs = voz.camadas.map((camada) => {
+  const fontes = voz.camadas.map((camada) => {
     const osc = audio.createOscillator();
-    osc.type = camada.tipo;
+    if (camada.onda) osc.setPeriodicWave(ondaPeriodica(audio, camada.onda, camada.harmonicos));
+    else osc.type = camada.tipo;
     osc.frequency.value = freq * (camada.multiplo ?? 1);
-    osc.detune.value = camada.detune ?? 0;
+    const detune = camada.detune ?? 0;
+    if (voz.entrada) {
+      // A nota chega um pouco baixa e se firma.
+      osc.detune.setValueAtTime(detune + voz.entrada.cents, t);
+      osc.detune.linearRampToValueAtTime(detune, t + Math.min(voz.entrada.tempo, env.duration * 0.5));
+    } else {
+      osc.detune.value = detune;
+    }
     const ganho = audio.createGain();
-    ganho.gain.setValueAtTime(camada.ganho ?? 1, t);
-    if (camada.decai) ganho.gain.exponentialRampToValueAtTime(0.001, t + camada.decai);
+    ganho.gain.value = camada.ganho ?? 1;
     osc.connect(ganho).connect(entrada);
     osc.start(t);
-    osc.stop(fim + 0.05);
+    osc.stop(parar);
     return osc;
   });
+  const oscs = [...fontes];
+
+  // Sopro, arco ou vento: ruído filtrado, mais forte no ataque.
+  if (voz.sopro) {
+    const s = voz.sopro;
+    const r = audio.createBufferSource();
+    r.buffer = ruido(audio);
+    r.loop = true;
+    const banda = audio.createBiquadFilter();
+    banda.type = 'bandpass';
+    banda.frequency.value = Math.min(s.hz ?? freq * s.multiplo, audio.sampleRate * 0.45);
+    banda.Q.value = s.q;
+    const g = audio.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(s.ganho * 4, t + Math.min(0.015, env.duration * 0.2));
+    g.gain.exponentialRampToValueAtTime(s.ganho, t + Math.min(s.ataque, env.duration * 0.5));
+    r.connect(banda).connect(g).connect(gain);
+    r.start(t, Math.random() * 1.5);
+    r.stop(parar);
+    fontes.push(r);
+  }
 
   if (voz.vibrato) {
     const lfo = audio.createOscillator();
     lfo.frequency.value = voz.vibrato.hz;
     const profundidade = audio.createGain();
     profundidade.gain.setValueAtTime(0, t + voz.vibrato.atraso);
-    profundidade.gain.linearRampToValueAtTime(voz.vibrato.cents, t + voz.vibrato.atraso + 0.2);
+    profundidade.gain.linearRampToValueAtTime(voz.vibrato.cents, t + voz.vibrato.atraso + 0.4);
     lfo.connect(profundidade);
     oscs.forEach((osc) => profundidade.connect(osc.detune));
     lfo.start(t);
-    lfo.stop(fim + 0.05);
-    oscs.push(lfo);
+    lfo.stop(parar);
+    fontes.push(lfo);
   }
-  return oscs;
+  return fontes;
 }
 
 // Altura da última nota tocada: a próxima é escolhida a partir dela.
@@ -338,6 +445,7 @@ function getContext() {
     saida = ctx.createGain();
     saida.gain.value = getVolume();
     saida.connect(limitador).connect(ctx.destination);
+    aquecerTimbre(ctx, getTimbre());
   }
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
