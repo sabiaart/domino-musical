@@ -131,13 +131,26 @@ button {
   }
 }
 
+/* Nome da nota: branco metálico (prata com reflexo no meio) e um brilho em
+   volta, para ler bem sobre qualquer cor (pedido do Pedro). */
 .note-name {
-  font-weight: 800;
-  font-size: calc(var(--unit) * 0.34);
+  font-weight: 900;
+  font-size: calc(var(--unit) * 0.44);
   line-height: 1;
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
-  letter-spacing: 0.02em;
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #f2f5f8 38%,
+    #b8c2cc 52%,
+    #ffffff 70%,
+    #dfe5ea 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.85)) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7));
+  letter-spacing: 0.01em;
   user-select: none;
 }
 
@@ -547,7 +560,7 @@ input[type='text']:focus {
 
 .chain-transport {
   position: absolute;
-  bottom: 14px;
+  top: 14px;
   left: 26px;
   z-index: 5;
   display: flex;
@@ -571,17 +584,9 @@ input[type='text']:focus {
   transition: background 0.15s ease;
 }
 
-/* Botão R: no computador a tecla R faz isso; ele só aparece em telas de toque
-   (tablet e celular). */
-.chain-transport .so-toque {
-  display: none;
+/* Botão R: repete o último trecho, como a tecla R. */
+.chain-transport .repetir {
   font-weight: 800;
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .chain-transport .so-toque {
-    display: inline-block;
-  }
 }
 
 .chain-transport button:disabled {
@@ -820,6 +825,7 @@ input[type='text']:focus {
 }
 
 .controls {
+  position: relative;
   display: flex;
   gap: 8px;
   justify-content: center;
@@ -884,7 +890,7 @@ input[type='text']:focus {
 .sound-panel {
   position: absolute;
   left: 50%;
-  bottom: 64px;
+  bottom: calc(100% + 8px);
   transform: translateX(-50%);
   z-index: 40;
   display: flex;
@@ -894,7 +900,7 @@ input[type='text']:focus {
   box-sizing: border-box;
   width: max-content;
   max-width: calc(100% - 24px);
-  max-height: calc(100% - 80px);
+  max-height: 60vh;
   overflow-y: auto;
   padding: 10px;
   background: var(--felt-darker);
@@ -1047,11 +1053,69 @@ input[type='text']:focus {
 /* ---------- Responsivo ---------- */
 
 @media (max-width: 640px) {
+  /* Cabeçalho enxuto, numa linha só, para sobrar altura para a mesa. O Sair
+     vai para o canto de cima (pedido do Pedro), fora da fila dos botões. */
   .game-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 8px 10px 2px;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 64px 0 8px;
+  }
+
+  .players-bar {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .opponent {
+    padding: 3px 7px;
+    font-size: 0.78rem;
+  }
+
+  .game-header .scoreboard {
+    flex: 0 1 auto;
+    font-size: 0.72rem;
+  }
+
+  /* As peças de cada um já aparecem na mão e no cartão do adversário: aqui
+     fica só o monte. */
+  .game-header .scoreboard ul {
+    display: none;
+  }
+
+
+  .turn-banner {
+    padding: 1px 8px;
+    font-size: 0.82rem;
+  }
+
+  .hand-hint {
+    display: none;
+  }
+
+  .controls .btn.ghost {
+    position: fixed;
+    top: max(6px, env(safe-area-inset-top));
+    right: 8px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    z-index: 20;
+  }
+
+  /* Escolha de ponta e de posição: no meio da tela e menor. */
+  .side-chooser {
+    position: fixed;
+    top: 45%;
+    bottom: auto;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .side-chooser button {
+    padding: 5px 8px;
+    font-size: 0.8rem;
   }
 
   .scoreboard {
@@ -1059,7 +1123,7 @@ input[type='text']:focus {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 10px;
+    padding: 3px 8px;
   }
 
   .scoreboard h2 {
@@ -1068,9 +1132,10 @@ input[type='text']:focus {
 
   .scoreboard ul {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 0;
     flex: 1;
-    flex-wrap: wrap;
+    margin: 0;
   }
 
   .scoreboard li {
@@ -1096,12 +1161,13 @@ input[type='text']:focus {
   }
 
   .game-footer {
-    padding: 6px 8px 10px;
+    padding: 4px 8px 8px;
+    gap: 6px;
   }
 
   /* Celular: play/pause/stop menores e mais discretos (pedido do Pedro). */
   .chain-transport {
-    bottom: 14px;
+    top: 14px;
     left: 16px;
     gap: 3px;
     padding: 3px;
@@ -1114,10 +1180,6 @@ input[type='text']:focus {
     font-size: 11px;
   }
 
-  /* Aqui os botões ocupam duas linhas: o painel fica acima das duas. */
-  .sound-panel {
-    bottom: 100px;
-  }
 
   .controls .btn {
     padding: 9px 12px;
@@ -1279,6 +1341,7 @@ input[type='text']:focus {
   }
 
   .controls {
+    position: static;
     grid-area: controls;
     /* "safe": se não couber, rola em vez de vazar por cima do resultado. */
     align-content: safe end;
@@ -1351,12 +1414,42 @@ input[type='text']:focus {
   }
 
   .controls .btn.ghost {
-    flex: 0 1 auto;
+    position: fixed;
+    top: max(4px, env(safe-area-inset-top));
+    right: max(48px, env(safe-area-inset-right));
+    padding: 4px 9px;
+    font-size: 0.75rem;
+    z-index: 20;
+    flex: none;
+  }
+
+  .volume-control {
+    flex: 1 1 100%;
+  }
+
+  .game-header {
+    padding-right: 54px;
+  }
+
+
+  .side-chooser {
+    position: fixed;
+    top: 45%;
+    bottom: auto;
+    left: 40%;
+    transform: translate(-50%, -50%);
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .side-chooser button {
+    padding: 5px 8px;
+    font-size: 0.8rem;
   }
 
   /* Celular: play/pause/stop menores e mais discretos (pedido do Pedro). */
   .chain-transport {
-    bottom: 8px;
+    top: 8px;
     left: 8px;
     gap: 3px;
     padding: 3px;

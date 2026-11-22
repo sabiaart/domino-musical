@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { envelopeDaVoz, TIMBRES } from '../sound.js';
 
 describe('envelopeDaVoz', () => {
-  it('existem os três timbres', () => {
-    expect(TIMBRES).toEqual(['madeiras', 'violoncelo', 'harpa']);
+  it('existem os cinco timbres', () => {
+    expect(TIMBRES).toEqual(['madeiras', 'violoncelo', 'harpa', 'orgao', 'piano']);
   });
 
   it('o ataque nunca toma a nota inteira, mesmo a mais curta', () => {
@@ -21,10 +21,20 @@ describe('envelopeDaVoz', () => {
   });
 
   it('os instrumentos de sustentação seguram o legato até o fim', () => {
-    for (const timbre of ['madeiras', 'violoncelo']) {
+    for (const timbre of ['madeiras', 'violoncelo', 'orgao']) {
       const { duration, sustain } = envelopeDaVoz(timbre, 2.7, true);
       expect(sustain).toBe(true);
       expect(duration).toBe(2.7);
+    }
+  });
+});
+
+describe('legato', () => {
+  it('a entrada da nota cabe na troca com a anterior', () => {
+    for (const timbre of ['madeiras', 'violoncelo', 'orgao']) {
+      const { ataque, legato } = envelopeDaVoz(timbre, 2, true, true);
+      expect(legato).toBe(true);
+      expect(ataque).toBeLessThanOrEqual(0.06);
     }
   });
 });

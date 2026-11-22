@@ -16,6 +16,8 @@ const TIMBRES = [
   { id: 'madeiras', label: 'Clarinete' },
   { id: 'violoncelo', label: 'Violoncelo' },
   { id: 'harpa', label: 'Harpa celta' },
+  { id: 'orgao', label: 'Órgão de igreja' },
+  { id: 'piano', label: 'Piano de concerto' },
 ];
 
 // Botões de ação: comprar (só sem jogada e com monte), passar (só sem jogada
@@ -119,12 +121,12 @@ export default function Controls({
               type="range"
               min={gapMin}
               max={gapMax}
-              step={0.1}
+              step={0.05}
               value={chainGap}
               onChange={(e) => onChainGap(parseFloat(e.target.value))}
               aria-label="Tempo entre as notas, em segundos"
             />
-            <span className="speed-value">{chainGap.toFixed(1).replace('.', ',')} s</span>
+            <span className="speed-value">{String(Number(chainGap.toFixed(2))).replace('.', ',')} s</span>
           </label>
         </div>
       )}

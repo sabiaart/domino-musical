@@ -101,7 +101,10 @@ export const ARTICULATIONS = ['staccato', 'desligado', 'legato'];
 const DEFAULT_ARTICULATION = 'desligado';
 const STACCATO_DURATION_S = 0.2;
 const DESLIGADO_FRACAO = 0.5;
-const LEGATO_EMENDA_S = 0.15;
+// Legato: a nota segura o volume cheio até a seguinte começar e só então cede,
+// numa troca rápida (a seguinte entra enquanto ela sai), para os ataques
+// ficarem o mais emendados possível.
+const LEGATO_EMENDA_S = 0.06;
 // Decay suave: a nota perde volume aos poucos até 70% e depois some numa queda
 // longa, em vez de segurar o volume e cortar.
 const LEGATO_SUSTENTACAO = 0.7;
@@ -134,7 +137,7 @@ export function setArticulation(articulacao) {
 // Duração da nota para a articulação, dado o tempo até a nota seguinte (`gap`).
 export function articularNota(articulacao, gap) {
   if (articulacao === 'staccato') return { duration: Math.min(STACCATO_DURATION_S, gap * 0.5) };
-  if (articulacao === 'legato') return { duration: gap + LEGATO_EMENDA_S, sustain: true };
+  if (articulacao === 'legato') return { duration: gap + LEGATO_EMENDA_S, sustain: true, legato: true };
   return { duration: gap * DESLIGADO_FRACAO, sustain: true };
 }
 
@@ -178,6 +181,37 @@ const VOZES = {
     ],
     filtro: { inicio: 5 },
   },
+  // Órgão de igreja: tubos somados (fundamental, oitavas e quinta, como os
+  // registros), volume constante enquanto a tecla está apertada, sem vibrato.
+  orgao: {
+    ataque: 0.05,
+    camadas: [
+      { tipo: 'sine', multiplo: 0.5, ganho: 0.3 },
+      { tipo: 'sine', ganho: 0.5 },
+      { tipo: 'sine', multiplo: 2, ganho: 0.33 },
+      { tipo: 'sine', multiplo: 3, ganho: 0.22 },
+      { tipo: 'sine', multiplo: 4, ganho: 0.18 },
+      { tipo: 'sine', multiplo: 8, ganho: 0.08 },
+    ],
+    filtro: { inicio: 10 },
+    plano: true,
+  },
+  // Piano de concerto: martelo na corda, ataque imediato, brilho que some logo
+  // e corpo que vai morrendo devagar. Como a harpa, a articulação decide
+  // quando o abafador cai.
+  piano: {
+    ataque: 0.003,
+    percussivo: true,
+    camadas: [
+      { tipo: 'triangle', ganho: 0.55 },
+      { tipo: 'sine', ganho: 0.3 },
+      { tipo: 'sine', multiplo: 2, ganho: 0.3, decai: 1.2 },
+      { tipo: 'sine', multiplo: 3, ganho: 0.15, decai: 0.5 },
+      { tipo: 'sine', multiplo: 5, ganho: 0.06, decai: 0.15 },
+      { tipo: 'sine', multiplo: 2.003, detune: 4, ganho: 0.12, decai: 2.5 },
+    ],
+    filtro: { inicio: 8 },
+  },
 };
 export const TIMBRES = Object.keys(VOZES);
 
@@ -207,26 +241,33 @@ export function setTimbre(timbre) {
 
 // Ajusta o pedido da articulação ao que o timbre consegue fazer. O ataque
 // encolhe em notas curtas, para caber em andamento rápido em qualquer timbre.
-export function envelopeDaVoz(timbre, duration, sustain) {
+export function envelopeDaVoz(timbre, duration, sustain, legato = false) {
   const voz = VOZES[timbre];
   const dur = voz.percussivo ? Math.min(duration, PERCUSSAO_MAX_S) : duration;
+  // No legato a entrada da nota cabe na troca com a anterior: sem buraco.
+  const ataqueMax = legato && !voz.percussivo ? LEGATO_EMENDA_S : voz.ataque;
   return {
-    ataque: Math.min(voz.ataque, dur * 0.3),
+    ataque: Math.min(voz.ataque, ataqueMax, dur * 0.3),
     duration: dur,
     sustain: sustain && !voz.percussivo,
+    legato: legato && !voz.percussivo,
   };
 }
 
 // Agenda uma nota no instante `t` e devolve os osciladores criados.
-export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, timbre }) {
+export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, legato, timbre }) {
   const voz = VOZES[timbre];
-  const env = envelopeDaVoz(timbre, duration, sustain);
+  const env = envelopeDaVoz(timbre, duration, sustain, legato);
   const fim = t + env.duration;
 
   const gain = audio.createGain();
   gain.gain.setValueAtTime(0, t);
   gain.gain.linearRampToValueAtTime(volume, t + env.ataque);
-  if (env.sustain) {
+  if (env.legato || (env.sustain && voz.plano)) {
+    // Volume cheio até o fim; só a troca final, curta.
+    const queda = Math.min(env.legato ? LEGATO_EMENDA_S : LEGATO_RELEASE_S, env.duration * 0.3);
+    gain.gain.setValueAtTime(volume, fim - queda);
+  } else if (env.sustain) {
     // Em andamento rápido a nota é curta: a queda encolhe junto com ela.
     const queda = Math.min(LEGATO_RELEASE_S, env.duration * 0.4);
     gain.gain.exponentialRampToValueAtTime(volume * LEGATO_SUSTENTACAO, fim - queda);
@@ -311,7 +352,8 @@ export function playNotes(
     volume = PLAY_VOLUME,
     preview = false,
     positions = null, // alturas já escolhidas (ex.: as duas notas de uma peça)
-    sustain = false, // legato: mantém a nota soando, com decay suave no fim
+    sustain = false, // mantém a nota soando, com decay suave no fim
+    legato = false, // segura o volume cheio e emenda na seguinte
   } = {}
 ) {
   if (isMuted() || values.length === 0) return [];
@@ -328,7 +370,7 @@ export function playNotes(
     const freq = posFreq(pos);
     if (!freq) return;
     const t = start + i * gap;
-    oscs.push(...tocarVoz(audio, saida, freq, t, { duration, volume, sustain, timbre: getTimbre() }));
+    oscs.push(...tocarVoz(audio, saida, freq, t, { duration, volume, sustain, legato, timbre: getTimbre() }));
   });
   // A prévia do mouse não conta como nota da melodia.
   if (!preview) ultimaPos = anterior;
@@ -355,10 +397,10 @@ export function planTile(primeira, segunda) {
 // Toca a mesa a partir de uma peça até uma das pontas, peça por peça.
 // Pausar ou parar não corta a nota em curso: ela termina pelo próprio
 // envelope, sem estalo.
-// Intervalo entre as notas, ajustável na barra de velocidade (0,1 s a 3,5 s).
+// Intervalo entre as notas, ajustável na barra de velocidade (0,05 s a 3,5 s).
 // Vale já na próxima nota, mesmo com a cadeia tocando.
 const SPEED_KEY = 'domino.velocidade';
-export const CHAIN_GAP_MIN_S = 0.1;
+export const CHAIN_GAP_MIN_S = 0.05;
 export const CHAIN_GAP_MAX_S = 3.5;
 // Sem mexer na barra, a cadeia toca a 1,5 s por nota (pedido do Pedro).
 export const CHAIN_GAP_DEFAULT_S = 1.5;

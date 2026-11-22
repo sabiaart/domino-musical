@@ -17,6 +17,7 @@ export default function Hand({
   pendingOrient,
   onChooseOrient,
   onCancelOrient,
+  mesaDeLado = false,
 }) {
   const [choosing, setChoosing] = useState(null); // tileId aguardando escolha de ponta
 
@@ -54,16 +55,16 @@ export default function Hand({
             <div key={tile.id} className={`hand-slot ${draggingId === tile.id ? 'dragging' : ''}`}>
               {pendingOrient?.tileId === tile.id && (
                 <div className="side-chooser" role="group" aria-label="Escolha a posição">
-                  {pendingOrient.options.includes('horizontal') && (
-                    <button type="button" onClick={() => onChooseOrient('horizontal')}>
-                      ▬ Horizontal
-                    </button>
-                  )}
-                  {pendingOrient.options.includes('vertical') && (
-                    <button type="button" onClick={() => onChooseOrient('vertical')}>
-                      ▮ Vertical
-                    </button>
-                  )}
+                  {/* Com a mesa girada de lado, o que é deitado na cadeia aparece em pé na tela. */}
+                  {['horizontal', 'vertical']
+                    .filter((o) => pendingOrient.options.includes(o))
+                    .map((o) => ({ o, naTela: mesaDeLado ? (o === 'horizontal' ? 'vertical' : 'horizontal') : o }))
+                    .sort((x, y) => (x.naTela === 'horizontal' ? 0 : 1) - (y.naTela === 'horizontal' ? 0 : 1))
+                    .map(({ o, naTela }) => (
+                      <button key={o} type="button" onClick={() => onChooseOrient(o)}>
+                        {naTela === 'horizontal' ? '▬ Horizontal' : '▮ Vertical'}
+                      </button>
+                    ))}
                 </div>
               )}
               {choosing === tile.id && (

@@ -117,6 +117,9 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
   // Peça de notas diferentes que cabe em pé e deitada: o jogador escolhe a
   // posição antes de ela entrar na mesa.
   const [area, setArea] = useState({ largura: 0, altura: 0 });
+  // Giro da mesa, em graus no sentido do relógio (botões ⟲ ⟳).
+  const [giro, setGiro] = useState(0);
+  const girar = (graus) => setGiro((g) => (g + graus + 360) % 360);
   const [pendingOrient, setPendingOrient] = useState(null); // { tileId, side, options }
   const tryPlay = useCallback(
     (tileId, side) => {
@@ -179,6 +182,8 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
         dropSides={drag ? drag.sides : null}
         hoveredSide={hoveredSide}
         onAreaChange={setArea}
+        giro={giro}
+        onGirar={girar}
       />
 
       <footer className="game-footer">
@@ -190,6 +195,7 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
           ends={view.ends}
           onPlay={tryPlay}
           pendingOrient={myTurn ? pendingOrient : null}
+          mesaDeLado={giro === 90 || giro === 270}
           onChooseOrient={chooseOrient}
           onCancelOrient={() => setPendingOrient(null)}
           onDragStart={startDrag}

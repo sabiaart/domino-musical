@@ -48,6 +48,27 @@ function zoomParaCaber(layout, offsetX, offsetY, largura, altura) {
   };
 }
 
+// Mesa girada (0, 90, 180 ou 270 graus, no sentido do relógio): a cadeia é
+// montada numa área com largura e altura trocadas quando o giro é de 90 ou
+// 270, e cada retângulo é girado para a tela. As letras continuam de pé.
+export function girarRect(r, giro, larguraLayout, alturaLayout) {
+  if (giro === 90) return { x: alturaLayout - (r.y + r.h), y: r.x, w: r.h, h: r.w };
+  if (giro === 180) {
+    return { x: larguraLayout - (r.x + r.w), y: alturaLayout - (r.y + r.h), w: r.w, h: r.h };
+  }
+  if (giro === 270) return { x: r.y, y: larguraLayout - (r.x + r.w), w: r.h, h: r.w };
+  return r;
+}
+
+// Girada, a peça troca a ordem das metades quando a primeira metade iria
+// parar embaixo ou à direita da outra no sentido contrário ao de antes.
+function inverteMetades(giro, vertical) {
+  if (giro === 180) return true;
+  if (giro === 90) return vertical;
+  if (giro === 270) return !vertical;
+  return false;
+}
+
 // Silêncio antes da repetição pela tecla R.
 const SILENCIO_ANTES_DA_REPETICAO_MS = 1000;
 
@@ -78,6 +99,8 @@ export default function Board({
   dropSides = null,
   hoveredSide = null,
   onAreaChange,
+  giro = 0,
+  onGirar,
 }) {
   const areaRef = useRef(null);
   const [area, setArea] = useState({ largura: 0, altura: 0 });
@@ -94,9 +117,13 @@ export default function Board({
     return () => observer.disconnect();
   }, []);
 
+  // Área em que a cadeia é montada: com a mesa de lado, largura e altura se trocam.
+  const deLado = giro === 90 || giro === 270;
+  const areaLayout = deLado ? { largura: area.altura, altura: area.largura } : area;
   useEffect(() => {
-    onAreaChange?.(area);
-  }, [area, onAreaChange]);
+    onAreaChange?.(areaLayout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areaLayout.largura, areaLayout.altura, onAreaChange]);
 
   // Toca as notas da peça recém-colocada (uma por vez; entradas em lote,
   // como reconexão no multiplayer, ficam mudas).
@@ -224,15 +251,36 @@ export default function Board({
   const pronto = area.largura > 0;
   const unit = unidadeParaLargura(area.largura);
   const layout = pronto
-    ? layoutChain(board, area.largura, unit, seed, area.altura)
+    ? layoutChain(board, areaLayout.largura, unit, seed, areaLayout.altura)
     : { cells: [], rects: [], larguraCadeia: 0, alturaCadeia: 0, minX: 0, minY: 0, long: unit * 2 };
-  const { offsetX, offsetY, height } = centralizar(layout, area.largura, area.altura);
-  const zones = pronto && dropSides ? endZones(layout, offsetX, offsetY, area.largura) : null;
-  const zoom = zoomParaCaber(layout, offsetX, offsetY, area.largura, area.altura);
+  const centro = centralizar(layout, areaLayout.largura, areaLayout.altura);
+  // Na tela: retângulos já deslocados e girados.
+  const girar = (r) =>
+    girarRect(
+      { x: r.x + centro.offsetX, y: r.y + centro.offsetY, w: r.w, h: r.h },
+      giro,
+      areaLayout.largura,
+      areaLayout.altura,
+    );
+  const rectsTela = (layout.rects ?? []).map(girar);
+  const layoutTela = { ...layout, rects: rectsTela };
+  const offsetX = giro ? 0 : centro.offsetX;
+  const offsetY = giro ? 0 : centro.offsetY;
+  const height = giro ? area.altura : centro.height;
+  let zones =
+    pronto && dropSides ? endZones(layout, centro.offsetX, centro.offsetY, areaLayout.largura) : null;
+  if (zones && giro) {
+    const z = (p) =>
+      girarRect({ x: p.x, y: p.y, w: zones.size, h: zones.size }, giro, areaLayout.largura, areaLayout.altura);
+    zones = { size: zones.size, left: z(zones.left), right: z(zones.right) };
+  }
+  const zoom = giro
+    ? zoomParaCaber(layoutTela, 0, 0, area.largura, area.altura)
+    : zoomParaCaber(layout, offsetX, offsetY, area.largura, area.altura);
 
   return (
     <div className="board-area">
-      {/* Play, pause e stop, sempre à mão no canto inferior esquerdo da mesa.
+      {/* Play, pause e stop, sempre à mão no canto superior esquerdo da mesa.
           Parado, o play toca a mesa inteira desde a primeira ponta (como o Espaço). */}
       {board.length > 0 && (
         <div className="chain-transport" role="group" aria-label="Reprodução da cadeia">
@@ -263,16 +311,36 @@ export default function Board({
           >
             ⏹
           </button>
-          {/* Repetir, como a tecla R: só aparece em telas de toque (sem teclado). */}
+          {/* Repetir, como a tecla R. */}
           <button
             type="button"
-            className="so-toque"
+            className="repetir"
             onClick={() => tecladoRef.current('KeyR')}
             aria-label="Repetir o último trecho"
-            title="Repetir o último trecho"
+            title="Repetir o último trecho (R)"
           >
             R
           </button>
+          {onGirar && (
+            <>
+              <button
+                type="button"
+                onClick={() => onGirar(-90)}
+                aria-label="Girar a mesa para a esquerda"
+                title="Girar a mesa 90° para a esquerda"
+              >
+                ⟲
+              </button>
+              <button
+                type="button"
+                onClick={() => onGirar(90)}
+                aria-label="Girar a mesa para a direita"
+                title="Girar a mesa 90° para a direita"
+              >
+                ⟳
+              </button>
+            </>
+          )}
         </div>
       )}
       <div className="board-scroll" ref={areaRef}>
@@ -288,16 +356,19 @@ export default function Board({
           }
         >
           {board.length === 0 && <p className="board-empty">A mesa está vazia</p>}
-          {layout.cells.map((cell, i) => (
+          {layout.cells.map((cell, i) => {
+            const r = rectsTela[i];
+            const troca = cell.flipped !== inverteMetades(giro, cell.vertical);
+            return (
             <div
               key={cell.id}
               className={`board-cell ${tocando === cell.id ? 'playing' : ''}`}
-              style={{ transform: `translate(${cell.x + offsetX}px, ${cell.y + offsetY}px)` }}
+              style={{ transform: `translate(${r.x}px, ${r.y}px)` }}
             >
               <Tile
-                a={cell.flipped ? cell.right : cell.left}
-                b={cell.flipped ? cell.left : cell.right}
-                vertical={cell.vertical}
+                a={troca ? cell.right : cell.left}
+                b={troca ? cell.left : cell.right}
+                vertical={deLado ? !cell.vertical : cell.vertical}
                 unit={unit}
               />
               <div
@@ -305,9 +376,9 @@ export default function Board({
                 style={{ '--play-size': `${Math.round(Math.min(24, unit * 1.1))}px` }}
               >
                 {[
-                  ['inicio', setaParaVizinha(layout.rects, i, -1)],
+                  ['inicio', setaParaVizinha(rectsTela, i, -1)],
                   // Peça sozinha na mesa: um botão só, que toca ela mesma.
-                  ['fim', setaParaVizinha(layout.rects, i, 1) ?? (board.length === 1 ? '▶' : null)],
+                  ['fim', setaParaVizinha(rectsTela, i, 1) ?? (board.length === 1 ? '▶' : null)],
                 ]
                   .filter(([, icone]) => icone)
                   .map(([sentido, icone]) => (
@@ -323,7 +394,8 @@ export default function Board({
                   ))}
               </div>
             </div>
-          ))}
+            );
+          })}
           {zones &&
             ['left', 'right']
               .filter((side) => dropSides.includes(side))

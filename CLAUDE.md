@@ -24,6 +24,12 @@ de trabalho e as decisões que não dá para deduzir do código.
 - O computador joga uma peça válida por sorteio (sem níveis de dificuldade),
   esperando 5 s antes de jogar.
 - Carroça liga sempre pelo meio e a cadeia nunca vira nela.
+- Botões ⟲ ⟳ (ao lado do ▶) giram o desenho da mesa 90°, só na tela: a
+  cadeia é montada na área com largura e altura trocadas e cada peça é girada
+  (`girarRect` no Board); as letras ficam de pé e Horizontal/Vertical seguem a
+  tela. O giro não fica salvo.
+- Nomes das notas nas peças maiores (0,44 da unidade), em branco metálico com
+  brilho (pedido do Pedro).
 - Cadeia que passa da área da mesa (comum no celular) não rola: a mesa inteira
   encolhe junto até caber (zoom para longe, `zoomParaCaber` no Board). As peças
   não mudam de lugar entre si (pedido do Pedro).
@@ -53,27 +59,29 @@ de trabalho e as decisões que não dá para deduzir do código.
   tempo a nota soa.
 - Carroça toca a nota duas vezes.
 - Pausar ou parar deixa a nota em curso terminar, para evitar estalo.
-- Botões ▶/⏸ e ⏹ sempre visíveis no canto inferior esquerdo da mesa (pedido do
-  Pedro); parado, o ▶ toca a mesa inteira, como o Espaço. No celular são menores
-  e mais discretos (24 px em vez de 34). Em telas de toque (tablet e celular)
-  aparece também um botão R, que repete o último trecho como a tecla R.
+- Botões ▶/⏸, ⏹ e R sempre visíveis no canto superior esquerdo da mesa (pedido do
+  Pedro; já estiveram no inferior esquerdo); parado, o ▶ toca a mesa inteira, como o Espaço. No celular são menores
+  e mais discretos (24 px em vez de 34). O botão R repete o último trecho como a
+  tecla R; antes só aparecia em telas de toque, hoje aparece também no computador.
 - Teclado: Espaço pausa/continua a cadeia e, parada, toca a mesa inteira desde
   a primeira ponta. R repete do começo o último trecho tocado, depois de 1 s de
   silêncio (os dois toques no Espaço foram trocados pelo R a pedido do Pedro).
   Não agem dentro de campos de texto ou listas, nem com Ctrl/Alt; nas barras de
   velocidade e volume funcionam (elas ficam selecionadas depois de arrastar), e
   a lista de timbres solta a seleção depois da escolha.
-- Velocidade de 0,1 s a 3,5 s (o Pedro já testou 3 s e 4 s), padrão 1,5 s quando a
+- Velocidade de 0,05 s a 3,5 s (o Pedro já testou 3 s e 4 s), padrão 1,5 s quando a
   barra nunca foi mexida; pico das notas perto de 0 dB, com limitador.
 - Articulação (pedido do Pedro): Staccato (no máximo 0,2 s), Desligado (padrão;
   50% do tempo até a seguinte, mais perto do staccato a pedido do Pedro; 80%
   ficou ligado demais, com decay suave: cai a 70% e some em até
-  0,25 s) e Legato (emenda: dura o tempo até a seguinte mais 0,15 s, então a
-  queda passa por dentro da nota seguinte). Vale para a peça jogada e a cadeia,
+  0,25 s) e Legato (ataques o mais emendados possível, pedido do Pedro: a nota segura o
+  volume cheio até a seguinte e as duas trocam em 0,06 s, com a entrada da
+  seguinte encurtada para caber nessa troca; antes durava o tempo até a seguinte
+  mais 0,15 s, caindo a 70%). Vale para a peça jogada e a cadeia,
   não para a prévia do mouse. Já houve Normal (nota sumindo em até 1,2 s) e um
   Legato de 90%, retirados.
-- Timbre: Clarinete (padrão), Violoncelo e Harpa celta (resgatada a
-  pedido do Pedro). A harpa não sustenta: vai morrendo desde o toque, e a
+- Timbre: Clarinete (padrão), Violoncelo, Harpa celta (resgatada a
+  pedido do Pedro), Órgão de igreja (`orgao`) e Piano de concerto (`piano`). A harpa e o piano não sustentam: vai morrendo desde o toque, e a
   articulação decide quando a corda é abafada (até 4 s no legato). No código, o id do
   clarinete continua `madeiras`, para não perder a escolha salva. São sintetizados, não gravações, e valem também para a prévia
   do mouse. Já foram testados e retirados a pedido do Pedro: Simples, cordas,
@@ -84,6 +92,12 @@ de trabalho e as decisões que não dá para deduzir do código.
 
 - Deitado: layout próprio, com 48 px livres nas laterais e sem margem embaixo
   (pedido do Pedro). O Android foi aprovado.
+- Para sobrar mesa (pedido do Pedro): sem a frase de instrução embaixo da mão,
+  cabeçalho em pé numa linha só (o placar mostra só o monte), e o Sair fica
+  pequeno no canto de cima à direita, fora da fila dos botões.
+- Escolha Esquerda/Direita e Horizontal/Vertical: no meio da mesa e menor.
+- O painel de Som fica preso logo acima dos botões (no tablet cobria a fila de
+  cima); no celular deitado continua preso à coluna da direita.
 
 ## Pendências e limitações
 
