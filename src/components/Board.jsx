@@ -321,26 +321,27 @@ export default function Board({
           >
             R
           </button>
-          {onGirar && (
-            <>
-              <button
-                type="button"
-                onClick={() => onGirar(-90)}
-                aria-label="Girar a mesa para a esquerda"
-                title="Girar a mesa 90° para a esquerda"
-              >
-                ⟲
-              </button>
-              <button
-                type="button"
-                onClick={() => onGirar(90)}
-                aria-label="Girar a mesa para a direita"
-                title="Girar a mesa 90° para a direita"
-              >
-                ⟳
-              </button>
-            </>
-          )}
+        </div>
+      )}
+      {/* Girar a mesa: no canto superior direito (pedido do Pedro). */}
+      {board.length > 0 && onGirar && (
+        <div className="chain-transport giro" role="group" aria-label="Girar a mesa">
+          <button
+            type="button"
+            onClick={() => onGirar(-90)}
+            aria-label="Girar a mesa para a esquerda"
+            title="Girar a mesa 90° para a esquerda"
+          >
+            ⟲
+          </button>
+          <button
+            type="button"
+            onClick={() => onGirar(90)}
+            aria-label="Girar a mesa para a direita"
+            title="Girar a mesa 90° para a direita"
+          >
+            ⟳
+          </button>
         </div>
       )}
       <div className="board-scroll" ref={areaRef}>

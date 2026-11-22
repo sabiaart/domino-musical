@@ -131,25 +131,17 @@ button {
   }
 }
 
-/* Nome da nota: branco metálico (prata com reflexo no meio) e um brilho em
-   volta, para ler bem sobre qualquer cor (pedido do Pedro). */
+/* Nome da nota: branco puro com brilho em volta (pedido do Pedro; o tom
+   metálico com faixa cinza foi retirado). */
 .note-name {
   font-weight: 900;
   font-size: calc(var(--unit) * 0.44);
   line-height: 1;
   color: #fff;
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #f2f5f8 38%,
-    #b8c2cc 52%,
-    #ffffff 70%,
-    #dfe5ea 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.85)) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7));
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.9),
+    0 0 5px rgba(255, 255, 255, 0.45),
+    0 1px 1px rgba(0, 0, 0, 0.6);
   letter-spacing: 0.01em;
   user-select: none;
 }
@@ -582,6 +574,12 @@ input[type='text']:focus {
   font-size: 15px;
   cursor: pointer;
   transition: background 0.15s ease;
+}
+
+/* Botões de girar a mesa: canto superior direito (pedido do Pedro). */
+.chain-transport.giro {
+  left: auto;
+  right: 26px;
 }
 
 /* Botão R: repete o último trecho, como a tecla R. */
@@ -1174,6 +1172,11 @@ input[type='text']:focus {
     background: rgba(0, 0, 0, 0.4);
   }
 
+  .chain-transport.giro {
+    left: auto;
+    right: 16px;
+  }
+
   .chain-transport button {
     width: 24px;
     height: 24px;
@@ -1454,6 +1457,11 @@ input[type='text']:focus {
     gap: 3px;
     padding: 3px;
     background: rgba(0, 0, 0, 0.4);
+  }
+
+  .chain-transport.giro {
+    left: auto;
+    right: 8px;
   }
 
   .chain-transport button {

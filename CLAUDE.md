@@ -24,11 +24,11 @@ de trabalho e as decisões que não dá para deduzir do código.
 - O computador joga uma peça válida por sorteio (sem níveis de dificuldade),
   esperando 5 s antes de jogar.
 - Carroça liga sempre pelo meio e a cadeia nunca vira nela.
-- Botões ⟲ ⟳ (ao lado do ▶) giram o desenho da mesa 90°, só na tela: a
+- Botões ⟲ ⟳ (canto superior direito da mesa, pedido do Pedro) giram o desenho da mesa 90°, só na tela: a
   cadeia é montada na área com largura e altura trocadas e cada peça é girada
   (`girarRect` no Board); as letras ficam de pé e Horizontal/Vertical seguem a
   tela. O giro não fica salvo.
-- Nomes das notas nas peças maiores (0,44 da unidade), em branco metálico com
+- Nomes das notas nas peças maiores (0,44 da unidade), em branco puro com
   brilho (pedido do Pedro).
 - Cadeia que passa da área da mesa (comum no celular) não rola: a mesa inteira
   encolhe junto até caber (zoom para longe, `zoomParaCaber` no Board). As peças
