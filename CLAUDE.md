@@ -26,7 +26,7 @@ de trabalho e as decisões que não dá para deduzir do código.
 - Carroça liga sempre pelo meio e a cadeia nunca vira nela.
 - Botões ⟲ ⟳ (canto superior direito da mesa, pedido do Pedro) giram o desenho da mesa 90°, só na tela: a
   cadeia é montada na área com largura e altura trocadas e cada peça é girada
-  (`girarRect` no Board); as letras ficam de pé e Horizontal/Vertical seguem a
+  (`girarRect` no Board; símbolos ⟲ ⟳ um pouco maiores que os dos outros botões); as letras ficam de pé e Horizontal/Vertical seguem a
   tela. O giro não fica salvo.
 - Nomes das notas nas peças maiores (0,44 da unidade), em branco puro com
   brilho (pedido do Pedro).
@@ -81,7 +81,7 @@ de trabalho e as decisões que não dá para deduzir do código.
   não para a prévia do mouse. Já houve Normal (nota sumindo em até 1,2 s) e um
   Legato de 90%, retirados.
 - Timbre: Clarinete (padrão), Violoncelo, Harpa celta (resgatada a
-  pedido do Pedro), Órgão de tubos (`orgao`) e Piano digital (`pianoDigital`, som de teclado elétrico por FM; entrou a pedido do Pedro no lugar do piano de concerto e depois da celesta, que nos graves soava como ruído). A harpa e o piano digital não sustentam: vai morrendo desde o toque, e a
+  pedido do Pedro), Órgão de tubos (`orgao`) e Piano digital (`pianoDigital`, som de teclado elétrico por FM; entrou a pedido do Pedro no lugar do piano de concerto e depois da celesta, que nos graves soava como ruído) e Voz (`voz`, solfejo: canta a sílaba de cada nota por síntese de formantes, em `solfejo.js`, com o volume igualado por conta, sem compressor: o compressor aumentava as consoantes e fazia chiado e um "u" no começo; consoantes refeitas a pedido do Pedro: Dó com estalo curto, sem soar "Ió"; Ré com "r" de toque, sem sopro; Mi e Lá sem "u" no ataque; Fá, Sol e Si com sopro bem fraco; nos agudos o primeiro formante sobe acima da nota e as ressonâncias alargam, para a vogal ficar mais clara). Opção Multitimbre (`multi`, pedido do Pedro): as duas notas de uma peça têm timbres diferentes, sorteados sem a Voz; a primeira nota da peça repete a nota em que encaixa e repete também o timbre com que ela soou. A harpa e o piano digital não sustentam: vai morrendo desde o toque, e a
   articulação decide quando a corda é abafada (até 4 s no legato). No código, o id do
   clarinete continua `madeiras`, para não perder a escolha salva. São sintetizados, não gravações, e valem também para a prévia
   do mouse. Harpa e piano digital são calculados nota a nota (`sintese.js`:
@@ -98,7 +98,8 @@ de trabalho e as decisões que não dá para deduzir do código.
   (pedido do Pedro). O Android foi aprovado.
 - Para sobrar mesa (pedido do Pedro): sem a frase de instrução embaixo da mão,
   cabeçalho em pé numa linha só (o placar mostra só o monte), e o Sair fica
-  pequeno no canto de cima à direita, fora da fila dos botões.
+  pequeno no canto de cima à direita, fora da fila dos botões, 20 px abaixo da
+  borda (pedido do Pedro).
 - Escolha Esquerda/Direita e Horizontal/Vertical: botões médios embaixo da
   mesa, no meio (portal em `#escolha-jogada`, no Board), numa faixa de 40 px
   que a cadeia nunca ocupa (`FAIXA_ESCOLHA_PX`), para não tapar peça nenhuma.

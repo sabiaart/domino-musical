@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { envelopeDaVoz, TIMBRES } from '../sound.js';
+import { envelopeDaVoz, TIMBRES, timbreDaNota, MULTITIMBRE } from '../sound.js';
+import { SILABAS } from '../solfejo.js';
 import { renderHarpa, renderPianoDigital } from '../sintese.js';
 
 describe('envelopeDaVoz', () => {
   it('existem os cinco timbres', () => {
-    expect(TIMBRES).toEqual(['madeiras', 'violoncelo', 'harpa', 'orgao', 'pianoDigital']);
+    expect(TIMBRES).toEqual(['madeiras', 'violoncelo', 'harpa', 'orgao', 'pianoDigital', 'voz']);
   });
 
   it('o ataque nunca toma a nota inteira, mesmo a mais curta', () => {
@@ -79,4 +80,42 @@ describe('cordas calculadas', () => {
       }
     });
   }
+});
+
+describe('multitimbre', () => {
+  it('sorteia entre os instrumentos (sem a Voz), nunca o mesmo duas notas seguidas', () => {
+    let anterior = null;
+    const vistos = new Set();
+    for (let i = 0; i < 200; i++) {
+      const t = timbreDaNota(MULTITIMBRE);
+      expect(t).not.toBe('voz');
+      expect(t).not.toBe(anterior);
+      vistos.add(t);
+      anterior = t;
+    }
+    expect(vistos.size).toBe(TIMBRES.length - 1);
+  });
+
+  it('as notas de uma peça têm timbres diferentes, e a nota repetida repete o timbre', () => {
+    // Peças Dó-Mi, Mi-Sol, Sol-Sol (carroça), Sol-Lá…
+    const pecas = [[0, 2], [2, 4], [4, 4], [4, 5], [5, 1]];
+    let pontaAnterior = null;
+    for (const [a, b] of pecas) {
+      const ta = timbreDaNota(MULTITIMBRE, a, 'inicio');
+      const tb = timbreDaNota(MULTITIMBRE, b, 'fim');
+      expect(tb).not.toBe(ta);
+      if (pontaAnterior) expect(ta).toBe(pontaAnterior);
+      pontaAnterior = tb;
+    }
+  });
+
+  it('um timbre escolhido continua o mesmo', () => {
+    expect(timbreDaNota('harpa')).toBe('harpa');
+  });
+});
+
+describe('voz que solfeja', () => {
+  it('tem uma sílaba para cada nota', () => {
+    expect(SILABAS).toHaveLength(7);
+  });
 });

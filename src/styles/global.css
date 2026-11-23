@@ -582,6 +582,12 @@ input[type='text']:focus {
   right: 26px;
 }
 
+/* Símbolos de girar um pouco maiores que os outros (pedido do Pedro). */
+.chain-transport.giro button {
+  font-size: 21px;
+  line-height: 1;
+}
+
 /* Botão R: repete o último trecho, como a tecla R. */
 .chain-transport .repetir {
   font-weight: 800;
@@ -1119,7 +1125,7 @@ input[type='text']:focus {
 
   .controls .btn.ghost {
     position: fixed;
-    top: max(6px, env(safe-area-inset-top));
+    top: max(26px, calc(env(safe-area-inset-top) + 20px));
     right: 8px;
     padding: 5px 10px;
     font-size: 0.78rem;
@@ -1186,6 +1192,10 @@ input[type='text']:focus {
   .chain-transport.giro {
     left: auto;
     right: 16px;
+  }
+
+  .chain-transport.giro button {
+    font-size: 16px;
   }
 
   .escolha-jogada {
@@ -1439,7 +1449,7 @@ input[type='text']:focus {
 
   .controls .btn.ghost {
     position: fixed;
-    top: max(4px, env(safe-area-inset-top));
+    top: max(24px, calc(env(safe-area-inset-top) + 20px));
     right: max(48px, env(safe-area-inset-right));
     padding: 4px 9px;
     font-size: 0.75rem;
@@ -1469,6 +1479,10 @@ input[type='text']:focus {
   .chain-transport.giro {
     left: auto;
     right: 8px;
+  }
+
+  .chain-transport.giro button {
+    font-size: 16px;
   }
 
   .escolha-jogada {

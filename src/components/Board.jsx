@@ -176,7 +176,7 @@ export default function Board({
     // escolhe as alturas das duas juntas (o modo de intervalos pode ter
     // mudado desde a peça anterior).
     if (seq.idx % 2 === 0) seq.plano = planTile(seq.notas[seq.idx], seq.notas[seq.idx + 1]);
-    playChainNote(seq.notas[seq.idx], seq.plano[seq.idx % 2]);
+    playChainNote(seq.notas[seq.idx], seq.plano[seq.idx % 2], seq.idx % 2 === 0 ? 'inicio' : 'fim');
     setTocando(seq.donos[seq.idx]);
     seq.idx += 1;
     seq.timer = setTimeout(passo, getChainGap() * 1000);

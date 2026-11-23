@@ -11,6 +11,7 @@ import {
   RANGE_MAX_HZ,
 } from '../game/notes.js';
 import { aquecerCordas, corda, ondaPeriodica, ruido, sala } from './sintese.js';
+import { solfejar } from './solfejo.js';
 
 const MUTE_KEY = 'domino.muted';
 const INTERVAL_KEY = 'domino.intervalos';
@@ -238,8 +239,39 @@ const VOZES = {
     sala: 0.3,
     nivel: 1,
   },
+  // Voz que solfeja: canta a sílaba de cada nota (pedido do Pedro). Ver
+  // solfejo.js.
+  voz: {
+    ataque: 0.02,
+    solfejo: true,
+    sala: 0.3,
+    nivel: 1,
+  },
 };
 export const TIMBRES = Object.keys(VOZES);
+
+// Multitimbre (pedido do Pedro): as duas notas de uma peça soam com timbres
+// diferentes, sorteados entre os instrumentos (a Voz fica de fora). A primeira
+// nota de uma peça repete a nota em que ela encaixa, e repete também o timbre
+// com que essa nota soou. `papel`: 'inicio' ou 'fim' da peça; sem papel
+// (prévia do mouse), só sorteia.
+export const MULTITIMBRE = 'multi';
+export const TIMBRES_DO_MULTI = TIMBRES.filter((t) => t !== 'voz');
+let ultimoSorteado = null;
+const timbreDaPonta = new Map(); // nota → timbre com que ela soou como ponta
+export function timbreDaNota(escolhido, nota, papel) {
+  if (escolhido !== MULTITIMBRE) return escolhido;
+  let t;
+  if (papel === 'inicio' && timbreDaPonta.has(nota)) {
+    t = timbreDaPonta.get(nota);
+  } else {
+    const opcoes = TIMBRES_DO_MULTI.filter((x) => x !== ultimoSorteado);
+    t = opcoes[Math.floor(Math.random() * opcoes.length)];
+  }
+  if (papel === 'fim') timbreDaPonta.set(nota, t);
+  ultimoSorteado = t;
+  return t;
+}
 
 let timbreAtual = null;
 
@@ -248,7 +280,7 @@ export function getTimbre() {
   let t = DEFAULT_TIMBRE;
   try {
     const salvo = localStorage.getItem(TIMBRE_KEY);
-    if (TIMBRES.includes(salvo)) t = salvo;
+    if (TIMBRES.includes(salvo) || salvo === MULTITIMBRE) t = salvo;
   } catch {
     // sem armazenamento: usa o padrão
   }
@@ -279,6 +311,10 @@ function frequenciasDoJogo() {
 // As cordas são calculadas antes de serem pedidas, para a primeira nota não
 // atrasar.
 function aquecerTimbre(audio, timbre) {
+  if (timbre === MULTITIMBRE) {
+    TIMBRES_DO_MULTI.forEach((t) => aquecerTimbre(audio, t));
+    return;
+  }
   const voz = VOZES[timbre];
   if (voz?.corda) aquecerCordas(audio, voz.corda, frequenciasDoJogo(), PERCUSSAO_MAX_S + 0.1);
 }
@@ -299,7 +335,7 @@ export function envelopeDaVoz(timbre, duration, sustain, legato = false) {
 }
 
 // Agenda uma nota no instante `t` e devolve as fontes de som criadas.
-export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, legato, timbre }) {
+export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, legato, timbre, nota = 0 }) {
   const voz = VOZES[timbre];
   const env = envelopeDaVoz(timbre, duration, sustain, legato);
   const fim = t + env.duration;
@@ -329,6 +365,8 @@ export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, l
     gain.connect(envio).connect(sala(audio, destino));
   }
   const parar = fim + 0.05;
+
+  if (voz.solfejo) return solfejar(audio, gain, freq, t, env.duration, nota, parar);
 
   if (voz.corda) {
     const fonte = audio.createBufferSource();
@@ -462,6 +500,7 @@ export function playNotes(
     positions = null, // alturas já escolhidas (ex.: as duas notas de uma peça)
     sustain = false, // mantém a nota soando, com decay suave no fim
     legato = false, // segura o volume cheio e emenda na seguinte
+    papeis = null, // 'inicio'/'fim' de peça para cada nota (multitimbre)
   } = {}
 ) {
   if (isMuted() || values.length === 0) return [];
@@ -478,7 +517,7 @@ export function playNotes(
     const freq = posFreq(pos);
     if (!freq) return;
     const t = start + i * gap;
-    oscs.push(...tocarVoz(audio, saida, freq, t, { duration, volume, sustain, legato, timbre: getTimbre() }));
+    oscs.push(...tocarVoz(audio, saida, freq, t, { duration, volume, sustain, legato, timbre: timbreDaNota(getTimbre(), value, papeis?.[i]), nota: value }));
   });
   // A prévia do mouse não conta como nota da melodia.
   if (!preview) ultimaPos = anterior;
@@ -491,6 +530,7 @@ export function playNotes(
 export function playTileNotes(primeira, segunda) {
   playNotes([primeira, segunda], {
     positions: planTile(primeira, segunda),
+    papeis: ['inicio', 'fim'],
     ...articularNota(getArticulation(), PLAY_GAP_S),
   });
 }
@@ -541,9 +581,9 @@ export function setChainGap(segundos) {
 
 // `pos` vem de planTile, feito na primeira nota de cada peça. Em andamento
 // rápido a nota fica mais curta, para não embolar com a seguinte.
-export function playChainNote(value, pos) {
+export function playChainNote(value, pos, papel) {
   const gap = getChainGap();
-  playNotes([value], { ...articularNota(getArticulation(), gap), positions: [pos] });
+  playNotes([value], { ...articularNota(getArticulation(), gap), positions: [pos], papeis: [papel] });
 }
 
 // --- Prévia no hover -------------------------------------------------------

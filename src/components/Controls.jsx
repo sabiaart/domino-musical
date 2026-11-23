@@ -18,6 +18,8 @@ const TIMBRES = [
   { id: 'harpa', label: 'Harpa celta' },
   { id: 'orgao', label: 'Órgão de tubos' },
   { id: 'pianoDigital', label: 'Piano digital' },
+  { id: 'voz', label: 'Voz (solfejo)' },
+  { id: 'multi', label: 'Multitimbre' },
 ];
 
 // Botões de ação: comprar (só sem jogada e com monte), passar (só sem jogada
