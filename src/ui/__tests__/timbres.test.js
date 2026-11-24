@@ -83,34 +83,26 @@ describe('cordas calculadas', () => {
 });
 
 describe('multitimbre', () => {
-  it('sorteia entre os instrumentos (sem a Voz), nunca o mesmo duas notas seguidas', () => {
+  it('cada peça soa num timbre só, e a seguinte troca de timbre', () => {
     let anterior = null;
     const vistos = new Set();
-    for (let i = 0; i < 200; i++) {
-      const t = timbreDaNota(MULTITIMBRE);
-      expect(t).not.toBe('voz');
-      expect(t).not.toBe(anterior);
-      vistos.add(t);
-      anterior = t;
+    for (let i = 0; i < 300; i++) {
+      const nota = i % 7;
+      const ta = timbreDaNota(MULTITIMBRE, nota, 'inicio');
+      const tb = timbreDaNota(MULTITIMBRE, (nota + 2) % 7, 'fim');
+      expect(TIMBRES).toContain(ta);
+      expect(tb).toBe(ta);
+      expect(ta).not.toBe(anterior);
+      vistos.add(ta);
+      anterior = ta;
     }
-    expect(vistos.size).toBe(TIMBRES.length - 1);
-  });
-
-  it('as notas de uma peça têm timbres diferentes, e a nota repetida repete o timbre', () => {
-    // Peças Dó-Mi, Mi-Sol, Sol-Sol (carroça), Sol-Lá…
-    const pecas = [[0, 2], [2, 4], [4, 4], [4, 5], [5, 1]];
-    let pontaAnterior = null;
-    for (const [a, b] of pecas) {
-      const ta = timbreDaNota(MULTITIMBRE, a, 'inicio');
-      const tb = timbreDaNota(MULTITIMBRE, b, 'fim');
-      expect(tb).not.toBe(ta);
-      if (pontaAnterior) expect(ta).toBe(pontaAnterior);
-      pontaAnterior = tb;
-    }
+    // Todos entram no sorteio, inclusive a Voz.
+    expect(vistos.size).toBe(TIMBRES.length);
+    expect(vistos.has('voz')).toBe(true);
   });
 
   it('um timbre escolhido continua o mesmo', () => {
-    expect(timbreDaNota('harpa')).toBe('harpa');
+    expect(timbreDaNota('harpa', 0, 'inicio')).toBe('harpa');
   });
 });
 

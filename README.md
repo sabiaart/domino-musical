@@ -29,7 +29,7 @@ repete do começo o último trecho tocado, depois de 1 s de silêncio. O seletor
 **Staccato** (notas curtas), **Desligado** (pouco ligadas; padrão) e **Legato**
 (totalmente ligadas: cada nota segura o volume até a seguinte entrar), inclusive na harpa e no piano digital, que abafam o som conforme a escolha.
 O seletor **Timbre** troca o instrumento: Clarinete (padrão),
-Violoncelo, Harpa celta, Órgão de tubos, Piano digital ou **Voz**, que canta o nome de cada nota (Dó, Ré, Mi…), todos sintetizados no navegador. Em **Multitimbre**, as duas notas de cada peça soam com instrumentos diferentes, sorteados (a Voz fica de fora); a nota que se repete de uma peça para a outra mantém o mesmo instrumento.
+Violoncelo, Harpa celta, Órgão de tubos, Piano digital ou **Voz**, que canta o nome de cada nota (Dó, Ré, Mi…), todos sintetizados no navegador. Em **Multitimbre**, cada peça soa inteira num timbre, e a peça seguinte sorteia outro, diferente do anterior (a Voz também entra no sorteio).
 As notas soam entre o Sol 1 e o Dó 5 (com o Dó central do piano como Dó 3;
 de 98 Hz a 1046 Hz), e o seletor
 **Intervalos** (que pode ser trocado durante a partida) decide o salto entre

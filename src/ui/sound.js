@@ -251,26 +251,19 @@ const VOZES = {
 };
 export const TIMBRES = Object.keys(VOZES);
 
-// Multitimbre (pedido do Pedro): as duas notas de uma peça soam com timbres
-// diferentes, sorteados entre os instrumentos (a Voz fica de fora). A primeira
-// nota de uma peça repete a nota em que ela encaixa, e repete também o timbre
-// com que essa nota soou. `papel`: 'inicio' ou 'fim' da peça; sem papel
-// (prévia do mouse), só sorteia.
+// Multitimbre (pedido do Pedro): cada peça soa inteira num timbre só; a peça
+// seguinte sorteia outro, diferente do anterior, entre todos (Voz incluída).
+// `papel`: 'inicio' (primeira nota da peça: sorteia) ou 'fim' (segunda: repete
+// o da primeira); sem papel (prévia do mouse), só sorteia.
 export const MULTITIMBRE = 'multi';
-export const TIMBRES_DO_MULTI = TIMBRES.filter((t) => t !== 'voz');
-let ultimoSorteado = null;
-const timbreDaPonta = new Map(); // nota → timbre com que ela soou como ponta
+export const TIMBRES_DO_MULTI = TIMBRES;
+let timbreDaPeca = null;
 export function timbreDaNota(escolhido, nota, papel) {
   if (escolhido !== MULTITIMBRE) return escolhido;
-  let t;
-  if (papel === 'inicio' && timbreDaPonta.has(nota)) {
-    t = timbreDaPonta.get(nota);
-  } else {
-    const opcoes = TIMBRES_DO_MULTI.filter((x) => x !== ultimoSorteado);
-    t = opcoes[Math.floor(Math.random() * opcoes.length)];
-  }
-  if (papel === 'fim') timbreDaPonta.set(nota, t);
-  ultimoSorteado = t;
+  if (papel === 'fim' && timbreDaPeca) return timbreDaPeca;
+  const opcoes = TIMBRES_DO_MULTI.filter((x) => x !== timbreDaPeca);
+  const t = opcoes[Math.floor(Math.random() * opcoes.length)];
+  if (papel) timbreDaPeca = t;
   return t;
 }
 
