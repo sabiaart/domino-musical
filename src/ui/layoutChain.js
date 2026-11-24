@@ -512,6 +512,23 @@ export function layoutChain(board, containerWidth, unit, semente = 0, alturaDisp
     }
 
     if (!escolha) {
+      // Sem lugar dentro do quadro (comum com uma carroça encostada na borda,
+      // que não pode virar): segue mesmo passando da borda, desde que não
+      // encoste em outra peça. A mesa inteira encolhe para caber (zoom no
+      // Board), e a cadeia não se parte (pedido do Pedro).
+      for (const outros of [bloqueados, ocupados]) {
+        if (escolha) break;
+        for (const cand of ordemGrupos.flat()) {
+          const posto = colocar(ponta.saida, dirAtual, cand, carroca, m);
+          if (colide(posto.rect, outros)) continue;
+          escolha = { ...posto, dir: cand };
+          apertada = true;
+          break;
+        }
+      }
+    }
+
+    if (!escolha) {
       // A ponta se fechou num beco (tela estreita com a mesa cheia). Quebra a
       // linha e recomeça abaixo de tudo que já foi posto: por construção não há
       // como colidir, e nenhuma peça se perde.

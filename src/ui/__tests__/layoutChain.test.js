@@ -89,12 +89,20 @@ describe('layoutChain', () => {
     }
   });
 
-  it('a cadeia não estoura a largura disponível', () => {
+  // Sem lugar dentro da mesa, a ponta pode passar da borda (a mesa encolhe
+  // para caber), mas a cadeia continua inteira: cada peça encosta na anterior.
+  it('a cadeia não se parte, mesmo apertada', () => {
     for (let s = 1; s <= 12; s++) {
       for (const largura of [380, 420, 700, 1100]) {
         const board = cadeia(28, s);
         const l = layoutChain(board, largura, unidadeParaLargura(largura), s, 300);
-        expect(l.larguraCadeia).toBeLessThanOrEqual(largura);
+        expect(l.quebras).toBe(0);
+        for (let i = 0; i + 1 < l.rects.length; i++) {
+          const [p, q] = [l.rects[i], l.rects[i + 1]];
+          const vaoX = Math.max(p.x, q.x) - Math.min(p.x + p.w, q.x + q.w);
+          const vaoY = Math.max(p.y, q.y) - Math.min(p.y + p.h, q.y + q.h);
+          expect(Math.max(vaoX, vaoY)).toBeLessThanOrEqual(l.gap + 0.5);
+        }
       }
     }
   });

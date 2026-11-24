@@ -244,6 +244,7 @@ const VOZES = {
   voz: {
     ataque: 0.02,
     solfejo: true,
+    plano: true,
     sala: 0.3,
     nivel: 1,
   },
@@ -344,7 +345,9 @@ export function tocarVoz(audio, destino, freq, t, { duration, volume, sustain, l
   const gain = audio.createGain();
   gain.gain.setValueAtTime(0, t);
   gain.gain.linearRampToValueAtTime(pico, t + env.ataque);
-  if (env.legato || (env.sustain && voz.plano)) {
+  // A Voz segura o volume até o fim mesmo em notas curtas: a vogal só chega
+  // depois da consoante, e com a queda logo no começo ela quase não soaria.
+  if (env.legato || ((env.sustain || voz.solfejo) && voz.plano)) {
     // Volume cheio até o fim; só a troca final, curta.
     const queda = Math.min(env.legato ? LEGATO_EMENDA_S : LEGATO_RELEASE_S, env.duration * 0.3);
     gain.gain.setValueAtTime(pico, fim - queda);

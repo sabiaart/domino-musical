@@ -23,7 +23,7 @@ const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 // inteira encolhe junto até caber. As peças não mudam de lugar entre si; é só
 // um zoom para longe. Devolve null quando a cadeia já cabe.
 const ZOOM_FOLGA_PX = 6;
-function zoomParaCaber(layout, offsetX, offsetY, largura, altura) {
+function zoomParaCaber(layout, offsetX, offsetY, largura, altura, sempre = false) {
   if (!layout.rects || layout.rects.length === 0 || largura <= 0 || altura <= 0) return null;
   let minX = Infinity;
   let minY = Infinity;
@@ -35,7 +35,7 @@ function zoomParaCaber(layout, offsetX, offsetY, largura, altura) {
     maxX = Math.max(maxX, r.x + r.w + offsetX);
     maxY = Math.max(maxY, r.y + r.h + offsetY);
   }
-  if (minX >= 0 && minY >= 0 && maxX <= largura && maxY <= altura) return null;
+  if (!sempre && minX >= 0 && minY >= 0 && maxX <= largura && maxY <= altura) return null;
   const escala = Math.min(
     1,
     (largura - 2 * ZOOM_FOLGA_PX) / (maxX - minX),
@@ -121,9 +121,11 @@ export default function Board({
     return () => observer.disconnect();
   }, []);
 
-  // Área em que a cadeia é montada: com a mesa de lado, largura e altura se trocam.
+  // A cadeia é sempre montada na mesa sem giro; girar só gira o desenho pronto
+  // (e centraliza, encolhendo se preciso). Remontar a cadeia na área de lado,
+  // com outro formato, às vezes a partia (pedido do Pedro).
   const deLado = giro === 90 || giro === 270;
-  const areaLayout = deLado ? { largura: area.altura, altura: area.largura } : area;
+  const areaLayout = area;
   useEffect(() => {
     onAreaChange?.(areaLayout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -279,7 +281,7 @@ export default function Board({
     zones = { size: zones.size, left: z(zones.left), right: z(zones.right) };
   }
   const zoom = giro
-    ? zoomParaCaber(layoutTela, 0, 0, area.largura, area.altura)
+    ? zoomParaCaber(layoutTela, 0, 0, area.largura, area.altura, true)
     : zoomParaCaber(layout, offsetX, offsetY, area.largura, area.altura);
 
   return (

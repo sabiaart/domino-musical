@@ -25,8 +25,9 @@ de trabalho e as decisões que não dá para deduzir do código.
   esperando 5 s antes de jogar.
 - Carroça liga sempre pelo meio e a cadeia nunca vira nela.
 - Botões ⟲ ⟳ (canto superior direito da mesa, pedido do Pedro) giram o desenho da mesa 90°, só na tela: a
-  cadeia é montada na área com largura e altura trocadas e cada peça é girada
-  (`girarRect` no Board; símbolos ⟲ ⟳ um pouco maiores que os dos outros botões); as letras ficam de pé e Horizontal/Vertical seguem a
+  cadeia é montada sempre na mesa sem giro e o desenho pronto é girado e
+  centralizado (`girarRect` no Board; remontar a cadeia na área de lado às vezes
+  a partia; símbolos ⟲ ⟳ um pouco maiores que os dos outros botões); as letras ficam de pé e Horizontal/Vertical seguem a
   tela. O giro não fica salvo.
 - Nomes das notas nas peças maiores (0,44 da unidade), em branco puro com
   brilho (pedido do Pedro).
@@ -81,7 +82,7 @@ de trabalho e as decisões que não dá para deduzir do código.
   não para a prévia do mouse. Já houve Normal (nota sumindo em até 1,2 s) e um
   Legato de 90%, retirados.
 - Timbre: Clarinete (padrão), Violoncelo, Harpa celta (resgatada a
-  pedido do Pedro), Órgão de tubos (`orgao`) e Piano digital (`pianoDigital`, som de teclado elétrico por FM; entrou a pedido do Pedro no lugar do piano de concerto e depois da celesta, que nos graves soava como ruído) e Voz (`voz`, solfejo: canta a sílaba de cada nota por síntese de formantes, em `solfejo.js`, com o volume igualado por conta, sem compressor: o compressor aumentava as consoantes e fazia chiado e um "u" no começo; consoantes refeitas a pedido do Pedro: Dó com estalo curto, sem soar "Ió"; Ré com "r" de toque, sem sopro; Mi e Lá sem "u" no ataque; Fá, Sol e Si com sopro bem fraco; nos agudos o primeiro formante sobe acima da nota e as ressonâncias alargam, para a vogal ficar mais clara). Opção Multitimbre (`multi`, pedido do Pedro): as duas notas de uma peça têm timbres diferentes, sorteados sem a Voz; a primeira nota da peça repete a nota em que encaixa e repete também o timbre com que ela soou. A harpa e o piano digital não sustentam: vai morrendo desde o toque, e a
+  pedido do Pedro), Órgão de tubos (`orgao`) e Piano digital (`pianoDigital`, som de teclado elétrico por FM; entrou a pedido do Pedro no lugar do piano de concerto e depois da celesta, que nos graves soava como ruído) e Voz (`voz`, solfejo: canta a sílaba de cada nota por síntese de formantes, em `solfejo.js`, com o volume igualado por conta, sem compressor: o compressor aumentava as consoantes e fazia chiado e um "u" no começo; consoantes refeitas a pedido do Pedro: Dó com estalo curto, sem soar "Ió"; Ré com "r" de toque, sem sopro; Mi e Lá sem "u" no ataque; Fá, Sol e Si com sopro bem fraco; nos agudos o primeiro formante sobe acima da nota e as ressonâncias alargam, para a vogal ficar mais clara; para soar mais humana: pulso de glote no lugar do dente de serra, cinco formantes, passagem consoante-vogal em curva e a nota chegando um tico abaixo; segura o volume até o fim mesmo no staccato, senão a vogal quase não soava). Se a síntese não bastar, o próximo passo combinado é gravar as 7 sílabas em três alturas com uma voz própria (gravações de cantores famosos foram descartadas por direitos e por serem em italiano). Opção Multitimbre (`multi`, pedido do Pedro): as duas notas de uma peça têm timbres diferentes, sorteados sem a Voz; a primeira nota da peça repete a nota em que encaixa e repete também o timbre com que ela soou. A harpa e o piano digital não sustentam: vai morrendo desde o toque, e a
   articulação decide quando a corda é abafada (até 4 s no legato). No código, o id do
   clarinete continua `madeiras`, para não perder a escolha salva. São sintetizados, não gravações, e valem também para a prévia
   do mouse. Harpa e piano digital são calculados nota a nota (`sintese.js`:
@@ -112,8 +113,9 @@ de trabalho e as decisões que não dá para deduzir do código.
 
 - A correção da faixa vazia embaixo no iPhone deitado (`position: fixed` na tela
   de jogo) não teve retorno confirmado.
-- A cadeia ainda pode se partir, raramente, no celular: costuma ser duas carroças
-  seguidas perto da borda.
+- A cadeia não se parte mais: sem lugar dentro da mesa (carroça na borda), a
+  ponta passa da borda e a mesa encolhe para caber, em vez de quebrar a linha.
+  A quebra de linha só sobra se não houver lugar nem fora da mesa.
 - O multiplayer não foi testado no navegador depois das últimas mudanças.
 - O painel de navegador embutido no app não toca áudio: o som só pode ser
   conferido pelo Pedro, em um navegador normal.
