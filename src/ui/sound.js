@@ -138,6 +138,37 @@ export function setArticulation(articulacao) {
   }
 }
 
+// Notas repetidas ligadas (pedido do Pedro): a mesma nota, na mesma altura,
+// várias vezes seguidas soa uma vez só, segurada por todos esses tempos (duas
+// vezes = dois tempos; carroça no meio = quatro).
+const LIGAR_KEY = 'domino.ligarRepetidas';
+let ligarAtual = null;
+export function getLigarRepetidas() {
+  if (ligarAtual !== null) return ligarAtual;
+  try {
+    ligarAtual = localStorage.getItem(LIGAR_KEY) === '1';
+  } catch {
+    ligarAtual = false;
+  }
+  return ligarAtual;
+}
+export function setLigarRepetidas(ligar) {
+  ligarAtual = Boolean(ligar);
+  try {
+    localStorage.setItem(LIGAR_KEY, ligarAtual ? '1' : '0');
+  } catch {
+    // vale só nesta sessão da página
+  }
+}
+
+// Duração de uma nota que dura `tempos` tempos: segura até o último e, nele,
+// segue a articulação normal.
+export function articularLigada(articulacao, gap, tempos) {
+  const ultima = articularNota(articulacao, gap);
+  if (tempos <= 1) return ultima;
+  return { ...ultima, duration: (tempos - 1) * gap + ultima.duration, sustain: true };
+}
+
 // Duração da nota para a articulação, dado o tempo até a nota seguinte (`gap`).
 export function articularNota(articulacao, gap) {
   if (articulacao === 'staccato') return { duration: Math.min(STACCATO_DURATION_S, gap * 0.5) };
@@ -524,16 +555,26 @@ export function playNotes(
 // As alturas das duas são escolhidas juntas, para o intervalo dentro da peça
 // respeitar o modo (ver choosePairPos).
 export function playTileNotes(primeira, segunda) {
+  const plano = planTile(primeira, segunda);
+  // Carroça com as notas ligadas: uma nota só, por dois tempos.
+  if (getLigarRepetidas() && primeira === segunda && plano[0] === plano[1]) {
+    playNotes([primeira], {
+      positions: [plano[0]],
+      papeis: ['inicio'],
+      ...articularLigada(getArticulation(), PLAY_GAP_S, 2),
+    });
+    return;
+  }
   playNotes([primeira, segunda], {
-    positions: planTile(primeira, segunda),
+    positions: plano,
     papeis: ['inicio', 'fim'],
     ...articularNota(getArticulation(), PLAY_GAP_S),
   });
 }
 
 // Alturas para as duas notas de uma peça, a partir da última nota tocada.
-export function planTile(primeira, segunda) {
-  return choosePairPos(ultimaPos, primeira, segunda, modoAtual ?? getIntervalMode());
+export function planTile(primeira, segunda, anterior = ultimaPos) {
+  return choosePairPos(anterior, primeira, segunda, modoAtual ?? getIntervalMode());
 }
 
 // --- Tocar a cadeia ------------------------------------------------------
@@ -577,9 +618,16 @@ export function setChainGap(segundos) {
 
 // `pos` vem de planTile, feito na primeira nota de cada peça. Em andamento
 // rápido a nota fica mais curta, para não embolar com a seguinte.
-export function playChainNote(value, pos, papel) {
+export function playChainNote(value, pos, papel, tempos = 1) {
   const gap = getChainGap();
-  playNotes([value], { ...articularNota(getArticulation(), gap), positions: [pos], papeis: [papel] });
+  playNotes([value], { ...articularLigada(getArticulation(), gap, tempos), positions: [pos], papeis: [papel] });
+}
+
+// Nota ligada à anterior: não soa de novo (a anterior continua soando), mas
+// conta como nota da melodia e, no multitimbre, como começo de peça.
+export function skipChainNote(value, pos, papel) {
+  ultimaPos = pos;
+  timbreDaNota(getTimbre(), value, papel);
 }
 
 // --- Prévia no hover -------------------------------------------------------

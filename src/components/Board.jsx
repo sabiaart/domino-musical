@@ -12,6 +12,8 @@ import {
 import {
   playTileNotes,
   playChainNote,
+  skipChainNote,
+  getLigarRepetidas,
   planTile,
   resetMelody,
   getChainGap,
@@ -69,9 +71,10 @@ function inverteMetades(giro, vertical) {
   return false;
 }
 
-// Faixa livre embaixo da mesa, onde aparecem as escolhas da jogada (ponta,
-// posição): as peças nunca entram nela, então a escolha não tapa nenhuma.
-const FAIXA_ESCOLHA_PX = 40;
+// Faixa livre embaixo da mesa, onde ficam os botões de tocar e girar e as
+// escolhas da jogada (ponta, posição): as peças nunca entram nela, então nada
+// ali tapa peça nenhuma.
+const FAIXA_ESCOLHA_PX = 46;
 
 // Silêncio antes da repetição pela tecla R.
 const SILENCIO_ANTES_DA_REPETICAO_MS = 1000;
@@ -177,8 +180,36 @@ export default function Board({
     // As notas vêm em pares, uma peça por vez: na primeira de cada peça,
     // escolhe as alturas das duas juntas (o modo de intervalos pode ter
     // mudado desde a peça anterior).
-    if (seq.idx % 2 === 0) seq.plano = planTile(seq.notas[seq.idx], seq.notas[seq.idx + 1]);
-    playChainNote(seq.notas[seq.idx], seq.plano[seq.idx % 2], seq.idx % 2 === 0 ? 'inicio' : 'fim');
+    // Alturas de cada peça, guardadas: com as notas ligadas é preciso saber as
+    // das peças seguintes antes de tocá-las.
+    const alturaDe = (j) => {
+      const p = Math.floor(j / 2);
+      for (let q = seq.planos.length; q <= p; q++) {
+        const anterior = q === 0 ? undefined : seq.planos[q - 1][1];
+        seq.planos.push(planTile(seq.notas[2 * q], seq.notas[2 * q + 1], anterior));
+      }
+      return seq.planos[p][j % 2];
+    };
+    const i = seq.idx;
+    const nota = seq.notas[i];
+    const pos = alturaDe(i);
+    const papel = i % 2 === 0 ? 'inicio' : 'fim';
+    const ligar = getLigarRepetidas();
+    if (ligar && i > 0 && nota === seq.notas[i - 1] && pos === alturaDe(i - 1)) {
+      // Continuação de uma nota ligada: a anterior ainda está soando.
+      skipChainNote(nota, pos, papel);
+    } else {
+      let tempos = 1;
+      while (
+        ligar &&
+        i + tempos < seq.notas.length &&
+        seq.notas[i + tempos] === nota &&
+        alturaDe(i + tempos) === pos
+      ) {
+        tempos += 1;
+      }
+      playChainNote(nota, pos, papel, tempos);
+    }
     setTocando(seq.donos[seq.idx]);
     seq.idx += 1;
     seq.timer = setTimeout(passo, getChainGap() * 1000);
@@ -214,7 +245,7 @@ export default function Board({
         donos.push(p.tile.id);
       });
     });
-    seqRef.current = { notas, donos, idx: 0, timer: null };
+    seqRef.current = { notas, donos, idx: 0, timer: null, planos: [] };
     resetMelody();
     setPlayer('tocando');
     if (espera > 0) seqRef.current.timer = setTimeout(passo, espera);
@@ -286,7 +317,7 @@ export default function Board({
 
   return (
     <div className="board-area">
-      {/* Play, pause e stop, sempre à mão no canto superior esquerdo da mesa.
+      {/* Play, pause e stop, sempre à mão no canto inferior esquerdo da mesa.
           Parado, o play toca a mesa inteira desde a primeira ponta (como o Espaço). */}
       {board.length > 0 && (
         <div className="chain-transport" role="group" aria-label="Reprodução da cadeia">
@@ -323,16 +354,16 @@ export default function Board({
             className="repetir"
             onClick={() => tecladoRef.current('KeyR')}
             aria-label="Repetir o último trecho"
-            title="Repetir o último trecho (R)"
+            title="Repetir o último trecho (tecla R)"
           >
-            R
+            ◀◀
           </button>
         </div>
       )}
       {/* Escolhas da jogada (ponta, posição): embaixo da mesa, no meio, numa
           faixa onde as peças não entram (a mão as coloca aqui). */}
       <div id="escolha-jogada" className="escolha-jogada" />
-      {/* Girar a mesa: no canto superior direito (pedido do Pedro). */}
+      {/* Girar a mesa: no canto inferior direito (pedido do Pedro). */}
       {board.length > 0 && onGirar && (
         <div className="chain-transport giro" role="group" aria-label="Girar a mesa">
           <button

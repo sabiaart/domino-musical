@@ -20,12 +20,12 @@ correndo o mouse por ela. Sobre cada peça da mesa aparecem também os botões
 **setas**, que tocam a cadeia dali até uma das pontas — cada seta aponta
 para a peça vizinha naquele sentido —, nota por nota, com o tempo entre elas
 escolhido na barra **Velocidade** (de 0,05 s a 3,5 s; padrão 1,5 s, e dá para
-mexer com a cadeia tocando). No canto superior esquerdo da mesa ficam os botões **▶/⏸**, **⏹** e **R**; com
-nada tocando, o ▶ toca a mesa inteira, e o R repete o último trecho. No canto superior
+mexer com a cadeia tocando). No canto inferior esquerdo da mesa ficam os botões **▶/⏸**, **⏹** e **◀◀**; com
+nada tocando, o ▶ toca a mesa inteira, e o ◀◀ repete o último trecho. No canto inferior
 direito, **⟲** e **⟳** giram o desenho da mesa 90° para a esquerda ou para a direita
 (as letras continuam de pé). No computador, a tecla **Espaço** pausa e continua
 a cadeia; com nada tocando, toca a mesa inteira desde a primeira ponta. A tecla **R**
-repete do começo o último trecho tocado, depois de 1 s de silêncio. O seletor **Articulação** tem
+repete do começo o último trecho tocado, depois de 1 s de silêncio. No painel de Som, a opção **Nota ligada** (no lugar de **Nota repetida**) faz a nota que se repete seguida (a ponta que liga duas peças, ou a carroça) soar uma vez só, segurada por todos esses tempos. O seletor **Articulação** tem
 **Staccato** (notas curtas), **Desligado** (pouco ligadas; padrão) e **Legato**
 (totalmente ligadas: cada nota segura o volume até a seguinte entrar), inclusive na harpa e no piano digital, que abafam o som conforme a escolha.
 O seletor **Timbre** troca o instrumento: Clarinete (padrão),

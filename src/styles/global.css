@@ -552,7 +552,7 @@ input[type='text']:focus {
 
 .chain-transport {
   position: absolute;
-  top: 14px;
+  bottom: 14px;
   left: 26px;
   z-index: 5;
   display: flex;
@@ -588,9 +588,12 @@ input[type='text']:focus {
   line-height: 1;
 }
 
-/* Botão R: repete o último trecho, como a tecla R. */
+/* Botão ◀◀ (voltar, como nos aparelhos de som): repete o último trecho,
+   como a tecla R. As duas setas ficam juntinhas. */
 .chain-transport .repetir {
-  font-weight: 800;
+  letter-spacing: -0.28em;
+  text-indent: -0.28em;
+  font-size: 0.85em;
 }
 
 .chain-transport button:disabled {
@@ -820,21 +823,22 @@ input[type='text']:focus {
   background: var(--accent);
   color: var(--ink);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 1.02rem;
   line-height: 1.2;
-  border-radius: 5px;
-  padding: 4px 9px;
+  border-radius: 6px;
+  padding: 5px 11px;
   cursor: pointer;
 }
 
-/* Embaixo da mesa, no meio, na faixa onde as peças não entram. */
+/* Embaixo da mesa, no meio, na faixa onde as peças não entram, na mesma
+   linha dos botões ▶ ⏹ ◀◀ e ⟲ ⟳. */
 .escolha-jogada {
   position: absolute;
-  bottom: 8px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 6;
-  height: 36px;
+  height: 44px;
   display: flex;
   align-items: center;
   pointer-events: none;
@@ -1182,7 +1186,7 @@ input[type='text']:focus {
 
   /* Celular: play/pause/stop menores e mais discretos (pedido do Pedro). */
   .chain-transport {
-    top: 14px;
+    bottom: 14px;
     left: 16px;
     gap: 3px;
     padding: 3px;
@@ -1199,13 +1203,13 @@ input[type='text']:focus {
   }
 
   .escolha-jogada {
-    bottom: 6px;
+    bottom: 14px;
+    height: 30px;
   }
 
-  /* Cabe entre os botões dos dois cantos. */
   .side-chooser button {
-    font-size: 0.8rem;
-    padding: 4px 6px;
+    font-size: 0.98rem;
+    padding: 5px 10px;
   }
 
   .chain-transport button {
@@ -1469,7 +1473,7 @@ input[type='text']:focus {
 
   /* Celular: play/pause/stop menores e mais discretos (pedido do Pedro). */
   .chain-transport {
-    top: 8px;
+    bottom: 8px;
     left: 8px;
     gap: 3px;
     padding: 3px;
@@ -1487,6 +1491,7 @@ input[type='text']:focus {
 
   .escolha-jogada {
     bottom: 8px;
+    height: 30px;
   }
 
   .chain-transport button {

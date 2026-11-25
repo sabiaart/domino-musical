@@ -18,6 +18,8 @@ import {
   setChainGap,
   getVolume,
   setVolume,
+  getLigarRepetidas,
+  setLigarRepetidas,
   CHAIN_GAP_MIN_S,
   CHAIN_GAP_MAX_S,
 } from '../ui/sound.js';
@@ -108,6 +110,11 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
   const changeArticulation = (articulacao) => {
     setArticulation(articulacao);
     setArticulationState(articulacao);
+  };
+  const [ligarRepetidas, setLigarState] = useState(getLigarRepetidas);
+  const changeLigar = (ligar) => {
+    setLigarRepetidas(ligar);
+    setLigarState(ligar);
   };
   const [timbre, setTimbreState] = useState(getTimbre);
   const changeTimbre = (novo) => {
@@ -219,6 +226,8 @@ export default function GameScreen({ view, onPlay, onDraw, onPass, onNewMatch, o
           onTimbre={changeTimbre}
           chainGap={chainGap}
           onChainGap={changeChainGap}
+          ligarRepetidas={ligarRepetidas}
+          onLigarRepetidas={changeLigar}
           gapMin={CHAIN_GAP_MIN_S}
           gapMax={CHAIN_GAP_MAX_S}
         />

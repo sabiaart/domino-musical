@@ -44,6 +44,8 @@ export default function Controls({
   onTimbre,
   chainGap,
   onChainGap,
+  ligarRepetidas,
+  onLigarRepetidas,
   gapMin,
   gapMax,
 }) {
@@ -96,6 +98,24 @@ export default function Controls({
                 title={a.hint}
               >
                 {a.label}
+              </button>
+            ))}
+          </div>
+          <div className="interval-modes" role="radiogroup" aria-label="Notas repetidas">
+            {[
+              { id: false, label: 'Nota repetida', hint: 'A nota repetida soa de novo a cada vez' },
+              { id: true, label: 'Nota ligada', hint: 'A nota repetida fica soando, ligada, por todos os tempos' },
+            ].map((o) => (
+              <button
+                key={o.label}
+                type="button"
+                role="radio"
+                aria-checked={ligarRepetidas === o.id}
+                className={ligarRepetidas === o.id ? 'selected' : ''}
+                onClick={() => onLigarRepetidas(o.id)}
+                title={o.hint}
+              >
+                {o.label}
               </button>
             ))}
           </div>

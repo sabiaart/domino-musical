@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { articularNota, CHAIN_GAP_MIN_S, CHAIN_GAP_MAX_S } from '../sound.js';
+import { articularNota, articularLigada, CHAIN_GAP_MIN_S, CHAIN_GAP_MAX_S } from '../sound.js';
 
 const GAPS = [CHAIN_GAP_MIN_S, 1, CHAIN_GAP_MAX_S];
 
@@ -34,6 +34,18 @@ describe('articularNota', () => {
       const [s, d, l] = ['staccato', 'desligado', 'legato'].map((a) => articularNota(a, gap).duration);
       expect(s).toBeLessThanOrEqual(d);
       expect(d).toBeLessThan(l);
+    }
+  });
+});
+
+describe('articularLigada', () => {
+  it('nota ligada por vários tempos segura até o último e articula nele', () => {
+    for (const art of ['staccato', 'desligado', 'legato']) {
+      const um = articularLigada(art, 1, 1);
+      expect(um).toEqual(articularNota(art, 1));
+      const quatro = articularLigada(art, 1, 4);
+      expect(quatro.duration).toBeCloseTo(3 + articularNota(art, 1).duration);
+      expect(quatro.sustain).toBe(true);
     }
   });
 });
