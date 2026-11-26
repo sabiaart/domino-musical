@@ -24,7 +24,7 @@ de trabalho e as decisões que não dá para deduzir do código.
 - O computador joga uma peça válida por sorteio (sem níveis de dificuldade),
   esperando 5 s antes de jogar.
 - Carroça liga sempre pelo meio e a cadeia nunca vira nela.
-- Botões ⟲ ⟳ (canto inferior direito da mesa, pedido do Pedro; antes no superior) giram o desenho da mesa 90°, só na tela: a
+- Botões ⟲ ⟳ (canto superior direito da mesa, pedido do Pedro; já estiveram no inferior) giram o desenho da mesa 90°, só na tela: a
   cadeia é montada sempre na mesa sem giro e o desenho pronto é girado e
   centralizado (`girarRect` no Board; remontar a cadeia na área de lado às vezes
   a partia; símbolos ⟲ ⟳ um pouco maiores que os dos outros botões); as letras ficam de pé e Horizontal/Vertical seguem a
@@ -60,8 +60,8 @@ de trabalho e as decisões que não dá para deduzir do código.
   tempo a nota soa.
 - Carroça toca a nota duas vezes. Opção "Nota repetida / Nota ligada" no painel de Som (pedido do Pedro, padrão Nota repetida): em Nota ligada, a mesma nota na mesma altura várias vezes seguidas soa uma vez só, segurada por todos os tempos (duas vezes = dois tempos; com carroça no meio, quatro). Vale para a cadeia tocada e para a carroça jogada. No modo 5ª–8ª a nota que liga as peças costuma mudar de oitava, e aí não liga.
 - Pausar ou parar deixa a nota em curso terminar, para evitar estalo.
-- Botões ▶/⏸, ⏹ e ◀◀ (antes "R"; trocado pelo símbolo de voltar dos aparelhos de som, a pedido do Pedro) sempre visíveis no canto inferior esquerdo da mesa (pedido do
-  Pedro; já estiveram no superior esquerdo, e antes no inferior); parado, o ▶ toca a mesa inteira, como o Espaço. No celular são menores
+- Botões ▶/⏸, ⏹ e ◀◀ (antes "R"; trocado pelo símbolo de voltar dos aparelhos de som, a pedido do Pedro) sempre visíveis no canto superior esquerdo da mesa (pedido do
+  Pedro; já estiveram duas vezes no inferior esquerdo); parado, o ▶ toca a mesa inteira, como o Espaço. No celular são menores
   e mais discretos (24 px em vez de 34). O botão R repete o último trecho como a
   tecla R; antes só aparecia em telas de toque, hoje aparece também no computador.
 - Teclado: Espaço pausa/continua a cadeia e, parada, toca a mesa inteira desde
@@ -103,8 +103,7 @@ de trabalho e as decisões que não dá para deduzir do código.
   borda (pedido do Pedro).
 - Escolha Esquerda/Direita e Horizontal/Vertical: botões médios (letras de ~1 rem, aumentadas a pedido do Pedro) embaixo da
   mesa, no meio (portal em `#escolha-jogada`, no Board), numa faixa de 46 px
-  que a cadeia nunca ocupa (`FAIXA_ESCOLHA_PX`), para não tapar peça nenhuma;
-  os botões de tocar e girar ficam nessa mesma faixa, nos cantos.
+  que a cadeia nunca ocupa (`FAIXA_ESCOLHA_PX`), para não tapar peça nenhuma.
   Pedido do Pedro; já estiveram no meio da mesa, acima da peça da mão, ao lado
   e abaixo do "Sua vez!" e no alto da mesa.
 - O painel de Som fica preso logo acima dos botões (no tablet cobria a fila de

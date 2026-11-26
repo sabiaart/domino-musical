@@ -71,9 +71,8 @@ function inverteMetades(giro, vertical) {
   return false;
 }
 
-// Faixa livre embaixo da mesa, onde ficam os botões de tocar e girar e as
-// escolhas da jogada (ponta, posição): as peças nunca entram nela, então nada
-// ali tapa peça nenhuma.
+// Faixa livre embaixo da mesa, onde aparecem as escolhas da jogada (ponta,
+// posição): as peças nunca entram nela, então a escolha não tapa nenhuma.
 const FAIXA_ESCOLHA_PX = 46;
 
 // Silêncio antes da repetição pela tecla R.
@@ -317,7 +316,7 @@ export default function Board({
 
   return (
     <div className="board-area">
-      {/* Play, pause e stop, sempre à mão no canto inferior esquerdo da mesa.
+      {/* Play, pause e stop, sempre à mão no canto superior esquerdo da mesa.
           Parado, o play toca a mesa inteira desde a primeira ponta (como o Espaço). */}
       {board.length > 0 && (
         <div className="chain-transport" role="group" aria-label="Reprodução da cadeia">
@@ -363,7 +362,7 @@ export default function Board({
       {/* Escolhas da jogada (ponta, posição): embaixo da mesa, no meio, numa
           faixa onde as peças não entram (a mão as coloca aqui). */}
       <div id="escolha-jogada" className="escolha-jogada" />
-      {/* Girar a mesa: no canto inferior direito (pedido do Pedro). */}
+      {/* Girar a mesa: no canto superior direito (pedido do Pedro). */}
       {board.length > 0 && onGirar && (
         <div className="chain-transport giro" role="group" aria-label="Girar a mesa">
           <button

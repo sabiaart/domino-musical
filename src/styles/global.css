@@ -552,7 +552,7 @@ input[type='text']:focus {
 
 .chain-transport {
   position: absolute;
-  bottom: 14px;
+  top: 14px;
   left: 26px;
   z-index: 5;
   display: flex;
@@ -830,8 +830,7 @@ input[type='text']:focus {
   cursor: pointer;
 }
 
-/* Embaixo da mesa, no meio, na faixa onde as peças não entram, na mesma
-   linha dos botões ▶ ⏹ ◀◀ e ⟲ ⟳. */
+/* Embaixo da mesa, no meio, na faixa onde as peças não entram. */
 .escolha-jogada {
   position: absolute;
   bottom: 14px;
@@ -1186,7 +1185,7 @@ input[type='text']:focus {
 
   /* Celular: play/pause/stop menores e mais discretos (pedido do Pedro). */
   .chain-transport {
-    bottom: 14px;
+    top: 14px;
     left: 16px;
     gap: 3px;
     padding: 3px;
@@ -1473,7 +1472,7 @@ input[type='text']:focus {
 
   /* Celular: play/pause/stop menores e mais discretos (pedido do Pedro). */
   .chain-transport {
-    bottom: 8px;
+    top: 8px;
     left: 8px;
     gap: 3px;
     padding: 3px;
